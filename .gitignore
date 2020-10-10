@@ -1,1 +1,8 @@
+# configurations
+/.idea/
+
+# local development
 /venv/
+
+# secret files
+init_secret.sh
