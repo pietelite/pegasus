@@ -14,7 +14,7 @@ def register(request) -> HttpResponse:
     #   if register is valid, send user to social
 
     context = {}
-    return HttpResponse(render(request, 'pegasus/register.html', context))
+    return HttpResponse(render(request, 'reels/register.html', context))
 
 
 # Handles requests relating to login.html
@@ -29,7 +29,7 @@ def login(request) -> HttpResponse:
     #   if login is valid, send user to social
 
     context = {}
-    return HttpResponse(render(request, 'pegasus/login.html', context))
+    return HttpResponse(render(request, 'reels/login.html', context))
 
 
 # Handles requests relating to create.html
@@ -41,7 +41,7 @@ def create(request) -> HttpResponse:
     #   if done, stitch video (call algorithms), then return video
 
     context = {}
-    return HttpResponse(render(request, 'pegasus/create.html', context))
+    return HttpResponse(render(request, 'reels/create.html', context))
 
 
 # Handles requests relating to social.html
@@ -53,4 +53,4 @@ def social(request) -> HttpResponse:
     #   if logged in, add 'like' to HTML element -> update database
 
     context = {}
-    return HttpResponse(render(request, 'pegasus/create.html', context))
+    return HttpResponse(render(request, 'reels/social.html', context))

@@ -4,5 +4,11 @@
 # local development
 /venv/
 
+# python caches
+/pegasus/__pycache__/
+/reels/__pycache__/
+/reels/migrations/__pycache__/
+
 # secret files
 init_secret.sh
+init_secret.bat
