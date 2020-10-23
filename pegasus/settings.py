@@ -12,21 +12,27 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 import os
+import socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ['DJANGO_PEGASUS_SECRET_KEY']
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Get all machines marked for development and turn on DEBUG for them
+with open('./development_machines.txt', 'r') as dev_machine_file:
+    dev_machines = dev_machine_file.read().split('\n')
 
-ALLOWED_HOSTS = []
+dev_machines = [machine.strip() for machine in dev_machines]
+
+if socket.gethostname() in dev_machines:
+    DEBUG = True
+    print('DEBUG enabled')
+else:
+    DEBUG = False
+    print('DEBUG disabled')
+
+ALLOWED_HOSTS = ['pegasus-pietelite.azurewebsites.net/']
 
 
 # Application definition
@@ -118,5 +124,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-
 STATIC_URL = '/static/'
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
