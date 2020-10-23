@@ -32,7 +32,7 @@ else:
     DEBUG = False
     print('DEBUG disabled')
 
-ALLOWED_HOSTS = ['pegasus-pietelite.azurewebsites.net/']
+ALLOWED_HOSTS = ['pegasus-pietelite.azurewebsites.net']
 
 
 # Application definition
