@@ -31,4 +31,4 @@ jobs:
       with:
         app-name: 'pegasus-pietelite'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_308f56a9f976418aa124f73eedd84339 }}
+        publish-profile: ${{ secrets.AZURE_CREDENTIALS }}
