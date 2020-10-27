@@ -9,6 +9,9 @@
 /reels/__pycache__/
 /reels/migrations/__pycache__/
 
+# deployment
+/staticfiles/
+
 # secret files
 init_secret.sh
 init_secret.bat
