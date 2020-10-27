@@ -27,10 +27,12 @@ dev_machines = [machine.strip() for machine in dev_machines]
 
 if socket.gethostname() in dev_machines:
     DEBUG = True
-    print('DEBUG enabled')
+    # print('DEBUG enabled')
 else:
     DEBUG = False
-    print('DEBUG disabled')
+    # print('DEBUG disabled')
+
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', 'pegasus-pietelite.azurewebsites.net']
 
