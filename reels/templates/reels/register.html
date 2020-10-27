@@ -1,7 +1,13 @@
-{% extends "reels/base.html" %}
+{% extends "reels/login.html" %}
 
-{% block title %}Connect With Others{% endblock %}
+{% block title %}Register{% endblock %}
 
-{% block content %}
-<h1>Register Page Content</h1>
+{% block header %}Register{% endblock %}
+{% block inputs %}
+    <input class="short-text" id="email" name="email" placeholder="Email" type="email">
+    <div class="mt-3"></div>
+    <input class="short-text" id="username" name="username" placeholder="Username" type="text">
+    <div class="mt-3"></div>
+    <input class="short-text" id="password" name="password" placeholder="Password" type="password">
 {% endblock %}
+{% block extra %}{% endblock %}

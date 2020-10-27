@@ -31,19 +31,58 @@
 }
 
 #navbar li a:hover:not(#logo) {
-    background-color: #111;
+    background-color: #101010;
 }
 
-#navbar li h3 {
+#navbar li span {
     color: white;
+    font-family: 'Comfortaa', cursive;
+    font-size: 1.5em;
+}
+
+/* Body */
+
+body {
+    background: #ACD3E6;
+}
+
+/* Content */
+
+#content {
+    position: absolute;
+    width: 100vw;
+    top: 120px;
+    left: 0;
+}
+
+#content * {
     font-family: 'Comfortaa', cursive;
 }
 
-body {
-    background: #f2ebce
+/* Forms */
+
+#content form {
+    border: 2px solid #101010;
+    border-radius: 10px;
+    padding: 20px 10%;
+    background: #104060;
 }
-/* Content */
-#content {
-    margin-top: 120px;
-    position: absolute;
+
+#content form .short-text {
+    background: white;
+    padding: 0.3em 0.5em;
+    border: none;
+    border-radius: 5px;
+    width: 100%;
+}
+
+#content form input[type=button] {
+      background-color: #ACD3E6;
+      color: black;
+      padding: 8px 10px;
+      margin-top: 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 50%;
 }

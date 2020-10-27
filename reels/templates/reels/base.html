@@ -4,7 +4,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
     <title>{% block title %}Default Title{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.css' %}">
     <link rel="stylesheet" href="{% static 'reels/style.css' %}">
 </head>
 <body>
@@ -12,14 +15,14 @@
 <div id="navbar">
     <ul>
         <li><a href="/create" id="logo"><img src="" alt="logo" width="100px" height="100px"></a></li>
-        <li><a href="/create"><h3>Create</h3></a></li>
-        <li><a href="/social"><h3>Social</h3></a></li>
-        <li style="float:right"><a href="/login"><h3>Log In</h3></a></li>
+        <li><a href="/create"><span>Create</span></a></li>
+        <li><a href="/social"><span>Social</span></a></li>
+        <li style="float:right"><a href="/login"><span>Log In</span></a></li>
     </ul>
 </div>
 
 <div id="content">
-    {% block content %}{% endblock %}
+    {% block content %}Content{% endblock %}
 </div>
 
 </body>

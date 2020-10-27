@@ -1,6 +1,19 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+# Handles requests relating to login.html
+def login(request) -> HttpResponse:
+    # TODO implement
+    # Might be useful:
+    # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
+
+    # if GET request, send rendered HttpResponse template
+    # if POST request, login the user
+    #   if login is invalid, send rendered HttpResponse with failure
+    #   if login is valid, send user to social
+
+    context = {}
+    return HttpResponse(render(request, 'reels/login.html', context))
 
 # Handles requests relating to register.html
 def register(request) -> HttpResponse:
@@ -16,21 +29,17 @@ def register(request) -> HttpResponse:
     context = {}
     return HttpResponse(render(request, 'reels/register.html', context))
 
-
-# Handles requests relating to login.html
-def login(request) -> HttpResponse:
+# Handles requests relating to forgot.html
+def forgot(request) -> HttpResponse:
     # TODO implement
-    # Might be useful:
-    # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
 
     # if GET request, send rendered HttpResponse template
-    # if POST request, login the user
-    #   if login is invalid, send rendered HttpResponse with failure
-    #   if login is valid, send user to social
+    # if POST request, send the user a forgot password link
+    #   if information is invalid, send rendered HttpResponse with failure
+    #   if information is success, send rendered HttpResponse to prompt checking email
 
     context = {}
-    return HttpResponse(render(request, 'reels/login.html', context))
-
+    return HttpResponse(render(request, 'reels/forgot.html', context))
 
 # Handles requests relating to create.html
 def create(request) -> HttpResponse:
