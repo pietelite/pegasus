@@ -1,0 +1,44 @@
+.social {
+    width: 80vw;
+    margin: 0 auto;
+}
+
+.social h1 {
+    text-align: center;
+}
+
+.social h3 {
+    text-align: center;
+}
+
+.social .footer {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.social .post {
+    padding: 10px;
+    background: rgba(255, 255, 255, .4);
+    border-radius: 20px;
+}
+
+.social .post .thumbnail {
+    display: block;
+    margin: 0 auto;
+}
+
+.social .post .info {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+}
+
+.post .info * {
+    margin-left: 8px;
+}
+
+.post .info p:first-child {
+    margin-left: 0;
+    flex-grow: 1;
+}

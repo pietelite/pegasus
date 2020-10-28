@@ -1,7 +1,43 @@
 {% extends "reels/base.html" %}
+{% load static %}
 
 {% block title %}Connect With Others{% endblock %}
 
+{% block header %}
+<link rel="stylesheet" href="{% static 'reels/social.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1>Social Page Content</h1>
+
+<div class="social">
+    <h1>Social Feed</h1>
+    <h3>Connect with Others</h3>
+
+    <div class="feed">
+        <!-- will eventually loop through videos here to display -->
+        <div class="post">
+            <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
+            <div class="info">
+                <p>Author: <b>pain-5387</b></p>
+                <button class="like">Like</button>
+                <p><i>#Likes</i></p>
+            </div>
+            <p>
+                Here is the description for my super awesome video. It should tell you how super awesome it is
+                in case you didn't think the thumbnail was super awesome.
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <!-- page selection -->
+
+        <button id="left"><</button>
+        <button id="1">1</button>
+        <button id="right">></button>
+    </div>
+</div>
+
+
+
 {% endblock %}
