@@ -34,6 +34,9 @@ else:
 
 DEBUG = True
 
+# To keep POST data, we cannot append a trailing slash to post URLs
+APPEND_SLASH = False
+
 ALLOWED_HOSTS = ['localhost', 'pegasus-pietelite.azurewebsites.net']
 
 # Application definition

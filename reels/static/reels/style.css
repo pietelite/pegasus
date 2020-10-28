@@ -68,21 +68,32 @@ body {
     background: #104060;
 }
 
-#content form .short-text {
-    background: white;
-    padding: 0.3em 0.5em;
-    border: none;
-    border-radius: 5px;
-    width: 100%;
-}
+    #content form .short-text {
+        background: white;
+        padding: 0.3em 0.5em;
+        border: none;
+        border-radius: 5px;
+        width: 100%;
+    }
 
-#content form input[type=button] {
-      background-color: #ACD3E6;
-      color: black;
-      padding: 8px 10px;
-      margin-top: 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      width: 50%;
-}
+    #content form input[type=submit] {
+        background-color: #ACD3E6;
+        color: black;
+        padding: 8px 10px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 50%;
+    }
+
+    #content form .form-error {
+        // background-color: #FF5842;
+        color: #FF5842;
+        padding: 10px 20px 0 20px;
+        margin: none
+        border: none;
+        border-radius: 5px;
+        width 100%;
+        font-size: 0.8em;
+    }
