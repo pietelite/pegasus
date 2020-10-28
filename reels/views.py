@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from .sql import username_exists
+from .sql import insert_user
 from .validators import valid_username_string, valid_credentials
 
 
@@ -26,6 +26,7 @@ def login(request) -> HttpResponse:
                 request.session.set_test_cookie()
                 return HttpResponse(render(request, 'reels/login.html', context))
             else:
+
                 return HttpResponse(render(request, 'reels/create.html', context))
         else:
             context['submit_errors'] = ['Please enable cookies and try again']
@@ -48,7 +49,15 @@ def register(request) -> HttpResponse:
     #   if register is valid, send user to social
 
     context = {}
+
+    if request.method == 'POST':
+        # TODO implement
+        return HttpResponse(render(request, 'reels/create.html', context))
+
+    # GET
+    request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/register.html', context))
+
 
 # Handles requests relating to forgot.html
 def forgot(request) -> HttpResponse:
@@ -60,7 +69,15 @@ def forgot(request) -> HttpResponse:
     #   if information is success, send rendered HttpResponse to prompt checking email
 
     context = {}
+
+    if request.method == 'POST':
+        # TODO implement
+        return HttpResponse(render(request, 'reels/forgot.html', context))
+
+    # GET
+    request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/forgot.html', context))
+
 
 # Handles requests relating to create.html
 def create(request) -> HttpResponse:

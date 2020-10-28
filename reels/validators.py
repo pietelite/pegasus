@@ -19,6 +19,12 @@ def valid_username_string(username) -> list:
     return errors
 
 
+# check if password is valid, returns list of all errors
+def valid_password(password) -> list:
+    # TODO implement
+    return []
+
+
 # check if valid credentials, returns list of all errors
 def valid_credentials(username, password) -> list:
     errors = []
