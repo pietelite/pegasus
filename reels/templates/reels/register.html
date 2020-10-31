@@ -4,10 +4,30 @@
 
 {% block header %}Register{% endblock %}
 {% block inputs %}
-    <input class="short-text" id="email" name="email" placeholder="Email" type="email">
+    <input class="short-text" id="email" name="email" placeholder="Email" type="text" maxlength="50">
+
+    {% for error in email_errors %}
+    <div class="form-error">{{ error }}</div>
+    {% endfor %}
+
     <div class="mt-3"></div>
-    <input class="short-text" id="username" name="username" placeholder="Username" type="text">
+    <input class="short-text" id="username" name="username" placeholder="Username" type="text" maxlength="50">
+
+    {% for error in username_errors %}
+    <div class="form-error">{{ error }}</div>
+    {% endfor %}
+
     <div class="mt-3"></div>
-    <input class="short-text" id="password" name="password" placeholder="Password" type="password">
+    <input class="short-text" id="password" name="password" placeholder="Password" type="password" maxlength="50">
+
+    {% for error in password_errors %}
+    <div class="form-error">{{ error }}</div>
+    {% endfor %}
+
 {% endblock %}
-{% block extra %}{% endblock %}
+{% block extra %}
+    <div class="mt-3"></div>
+    <div class="row justify-content-center">
+        <span>Already have an account? <a href="/register">Log In</a></span>
+    </div>
+{% endblock %}

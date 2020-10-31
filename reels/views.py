@@ -1,12 +1,20 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from .sql import insert_user
-from .validators import valid_username_string, valid_credentials
+from django.http import HttpResponse, HttpResponseRedirect
+
+from .session import upload_video
+from .sql import insert_user, get_user
+from .validators import valid_email, valid_username, valid_password, \
+    correct_credentials, existing_user
+from .recover import send_recovery_email
+
+
+# Redirects to create page
+def home(request) -> HttpResponse:
+    return HttpResponseRedirect('/create')
 
 
 # Handles requests relating to login.html
 def login(request) -> HttpResponse:
-    # TODO implement
     # Might be useful:
     # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
 
@@ -15,13 +23,8 @@ def login(request) -> HttpResponse:
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
-            username_errors = valid_username_string(request.POST['username'])
-            login_errors = valid_credentials(request.POST['username'], request.POST['password'])
-            if username_errors:
-                context['username_errors'] = username_errors
-                request.session.set_test_cookie()
-                return HttpResponse(render(request, 'reels/login.html', context))
-            elif login_errors:
+            login_errors = correct_credentials(request.POST['username'], request.POST['password'])
+            if login_errors:
                 context['login_errors'] = login_errors
                 request.session.set_test_cookie()
                 return HttpResponse(render(request, 'reels/login.html', context))
@@ -39,7 +42,6 @@ def login(request) -> HttpResponse:
 
 # Handles requests relating to register.html
 def register(request) -> HttpResponse:
-    # TODO implement
     # Might be useful:
     # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
 
@@ -51,11 +53,23 @@ def register(request) -> HttpResponse:
     context = {}
 
     if request.method == 'POST':
-        # TODO implement
-        return HttpResponse(render(request, 'reels/create.html', context))
+        # Add errors
+        context['email_errors'] = valid_email(request.POST['email'])
+        if get_user(request.POST['email']):
+            context['email_errors'].append('That email already exists')
+        context['username_errors'] = valid_username(request.POST['username'])
+        if get_user(request.POST['username']):
+            context['username_errors'].append('That username already exists')
+        context['password_errors'] = valid_password(request.POST['password'])
+
+        if context['email_errors'] or context['username_errors'] or context['password_errors']:
+            request.session.set_test_cookie()
+            return HttpResponse(render(request, 'reels/register.html', context))
+        else:
+            insert_user(request.POST['email'], request.POST['username'], request.POST['password'])
+            return HttpResponse(render(request, 'reels/registered.html', context))
 
     # GET
-    request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/register.html', context))
 
 
@@ -71,11 +85,14 @@ def forgot(request) -> HttpResponse:
     context = {}
 
     if request.method == 'POST':
-        # TODO implement
-        return HttpResponse(render(request, 'reels/forgot.html', context))
+        context['username_errors'] = existing_user(request.POST['username'])
+        if context['username_errors']:
+            return HttpResponse(render(request, 'reels/forgot.html', context))
+        else:
+            send_recovery_email(get_user)
+            return HttpResponse(render(request, 'reels/forgotten.html', context))
 
     # GET
-    request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/forgot.html', context))
 
 
@@ -88,6 +105,19 @@ def create(request) -> HttpResponse:
     #   if done, stitch video (call algorithms), then return video
 
     context = {}
+    if request.method == 'POST':
+        if request.session.test_cookie_worked():
+            request.session.delete_test_cookie()
+            print('uploading video')
+            upload_video(request, request.FILES['file'])
+            return HttpResponse(render(request, 'reels/create.html', context))
+        else:
+            # TODO print error about cookies
+            print('cookie error')
+            return HttpResponse(render(request, 'reels/create.html', context))
+
+    # GET
+    request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/create.html', context))
 
 

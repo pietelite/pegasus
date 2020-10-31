@@ -5,8 +5,9 @@ import uuid
 
 class User:
 
-    def __init__(self, user_name, password, created=time.time(), last_online=time.time()):
+    def __init__(self, email, user_name, password, created=time.time(), last_online=time.time()):
         self.user_id = uuid.uuid1()
+        self.email = email
         self.user_name = user_name
         self.password = password
         self.created = created
