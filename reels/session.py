@@ -18,9 +18,14 @@ def session_is_logged_in(request, user) -> None:
 
 
 # Uploads a video to media folder
-def upload_video(request, file) -> None:
+def upload_session_clip(request, file) -> None:
     # TODO fix
     with open('{}{}-{}.{}'.format(MEDIA_URL, request.session.session_key, time.time(), 'mp4'), 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
     print('Video uploaded')
+
+
+# Gets a list of SessionClips associated with a session
+def get_session_clips(request) -> list:
+    return []

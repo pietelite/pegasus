@@ -47,3 +47,12 @@ class Like:
         self.user_id = user_id
         self.post_id = post_id
         self.timestamp = timestamp
+
+
+# Class for a clip uploaded by a user
+class SessionClip:
+
+    def __init__(self, location, session_id, preset_config):
+        self.clip_location = location
+        self.session_id = session_id
+        self.preset_config = preset_config
