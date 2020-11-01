@@ -53,6 +53,15 @@ class Like:
 class SessionClip:
 
     def __init__(self, location, session_id, preset_config):
-        self.clip_location = location
+        self.location = location
+        self.session_id = session_id
+        self.preset_config = preset_config
+
+
+# Class for an audio file uploaded by a user
+class SessionAudio:
+
+    def __init__(self, location, session_id, preset_config):
+        self.location = location
         self.session_id = session_id
         self.preset_config = preset_config
