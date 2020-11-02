@@ -15,7 +15,7 @@ import os
 import socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-from reels.sql import create_tables
+from reels.sql import init_database
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -109,6 +109,7 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
 }
+init_database()
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
