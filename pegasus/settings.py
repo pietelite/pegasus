@@ -15,6 +15,8 @@ import os
 import socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from reels.sql import create_tables
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ['DJANGO_PEGASUS_SECRET_KEY']
@@ -85,14 +87,28 @@ WSGI_APPLICATION = 'pegasus.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
 
+    'default': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': 'pegasus',
+        'USER': 'pegasus',
+        'PASSWORD': str(os.environ['PEGASUS_SQL_PASSWORD']),
+        'HOST': 'tcp:pegasus-pietelite.database.windows.net',
+        'PORT': '1433',
+        'AUTOCOMMIT': True,     # Set this true for now so we don't have to do extra commit work
+
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'connection_timeout': 30,
+            # 'extra_params': 'server=pegasus-pietelite.database.windows.net\pegasus-pietelite'
+        },
+    },
+    # 'sqlite': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3',
+    # }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -130,7 +146,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 STATIC_URL = '/static/'
 
 # WhiteNoise comes with a storage backend which automatically takes
@@ -142,4 +157,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = []
 
 # Media files (uploads)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 MEDIA_URL = '/media/'

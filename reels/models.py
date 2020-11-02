@@ -5,13 +5,15 @@ import uuid
 
 class User:
 
-    def __init__(self, email, user_name, password, created=time.time(), last_online=time.time()):
+    def __init__(self, user_name, password, email, created=int(time.time()), last_online=int(time.time()),
+                 verified=False):
         self.user_id = uuid.uuid1()
-        self.email = email
         self.user_name = user_name
         self.password = password
+        self.email = email
         self.created = created
         self.last_online = last_online
+        self.verified = verified
 
 
 class Video:
@@ -52,7 +54,7 @@ class Like:
 # Class for a clip uploaded by a user
 class SessionClip:
 
-    def __init__(self, location, session_id, preset_config):
+    def __init__(self, location: str, session_id: str, preset_config: dict):
         self.location = location
         self.session_id = session_id
         self.preset_config = preset_config
@@ -61,7 +63,7 @@ class SessionClip:
 # Class for an audio file uploaded by a user
 class SessionAudio:
 
-    def __init__(self, location, session_id, preset_config):
+    def __init__(self, location: str, session_id: str, preset_config: dict):
         self.location = location
         self.session_id = session_id
         self.preset_config = preset_config

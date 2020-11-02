@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
-from .session import upload_session_clip
+from .session import upload_session_clips
 from .sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
@@ -108,12 +108,10 @@ def create(request) -> HttpResponse:
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
-            print('uploading video')
-            upload_session_clip(request, request.FILES['file'])
-            return HttpResponse(render(request, 'reels/create.html', context))
+            upload_session_clips(request.session.session_key, request.FILES.getlist('file'))
+            return HttpResponseRedirect('/create')
         else:
             # TODO print error about cookies
-            print('cookie error')
             return HttpResponse(render(request, 'reels/create.html', context))
 
     # GET

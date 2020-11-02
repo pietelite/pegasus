@@ -1,31 +1,46 @@
-from pegasus.settings import MEDIA_URL
-import time
+from django.contrib.sessions.backends.base import SessionBase
+from django.core.files import File
 
+from pegasus.settings import MEDIA_ROOT
+from reels.models import User, SessionClip
+import time
+from os import listdir
+
+
+# === Users ===
 
 # Login a user
-def session_login(request, user) -> None:
-    request.session['user_id'] = user.user_id
+def session_login(session: SessionBase, user: User) -> None:
+    session['user_id'] = user.user_id
 
 
 # Logout a user
-def session_logout(request, user) -> None:
-    request.session.pop('user_id')
+def session_logout(session: SessionBase, user: User) -> None:
+    session.pop('user_id')
 
 
 # Check if a user is already logged in
-def session_is_logged_in(request, user) -> None:
-    return request.session['user_id'] and request.session['user_id'] == user.user_id
+def session_is_logged_in(session: SessionBase, user: User) -> None:
+    return session['user_id'] and session['user_id'] == user.user_id
 
+
+# === Uploading ===
 
 # Uploads a video to media folder
-def upload_session_clip(request, file) -> None:
-    # TODO fix
-    with open('{}{}-{}.{}'.format(MEDIA_URL, request.session.session_key, time.time(), 'mp4'), 'wb+') as destination:
-        for chunk in file.chunks():
-            destination.write(chunk)
-    print('Video uploaded')
+def upload_session_clips(session_key: str, files: list) -> list:
+    # TODO move to blob storage
+    clips = []
+    time_sec = int(time.time())
+    for i in range(len(files)):
+        destination_location = '{}reels-{}-{}-{}.{}'.format(MEDIA_ROOT, session_key, time_sec, i, 'mp4')
+        with open(destination_location, 'wb+') as destination:
+            for chunk in files[i].chunks():
+                destination.write(chunk)
+        clips.append(SessionClip(destination_location, session_key, {}))
+    return clips
 
 
 # Gets a list of SessionClips associated with a session
-def get_session_clips(request) -> list:
-    return []
+def get_session_clips(session_key: str) -> list:
+    # TODO move to blob storage
+    return [f for f in listdir(MEDIA_ROOT) if f[:5] == 'reels' and f[-4:] == '.mp4']
