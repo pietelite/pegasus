@@ -15,3 +15,6 @@
 # secret files
 init_secret.sh
 init_secret.bat
+
+# media files
+/media/

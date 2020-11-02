@@ -4,6 +4,9 @@
 
 {% block header %}Forgot Password{% endblock %}
 {% block inputs %}
-    <input class="short-text" id="username" name="username" placeholder="Username or Email" type="text">
+    <input class="short-text" id="username" name="username" placeholder="Username or Email" type="text" maxlength="50">
+    {% for error in username_errors %}
+    <div class="form-error">{{ error }}</div>
+    {% endfor %}
 {% endblock %}
 {% block extra %}{% endblock %}

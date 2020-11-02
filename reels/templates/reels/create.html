@@ -1,7 +1,75 @@
 {% extends "reels/base.html" %}
+{% load static %}
 
-{% block title %}Create Your Video{% endblock %}
+{% block title %}Create{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'reels/create.css' %}">
+{% endblock %}
 
 {% block content %}
-<h1>Creation Page Content</h1>
+<div class="container-fluid">
+    <div class="container">
+        <h1 class="m-4">Create a Reel</h1>
+        <p class="m-4">
+            Welcome to Reels. Upload videos to stitch together, like clips from a video game or other short videos.
+        </p>
+        <br>
+        <h3 class="m-4">Step 1: Upload</h3>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-12 col-md-10 col-lg-10">
+            <div class="row">
+                <div class="col-4 col-sm-4 col-md-4 col-lg-3">
+                    <div class="row justify-content-center" style="height: 100%">
+                        <div class="upload">
+                            <script>
+                            function thisFileUpload() {
+                                document.getElementById('file_button').click();
+                                document.getElementById('file_button').onchange = function(){document.getElementById('upload_form').submit()};
+                            };
+                            </script>
+                            <form action="/create" class="upload" id="upload_form" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="file" id="file_button" name="file" accept="video/mp4" multiple>
+                            </form>
+                            <button id="upload_button" name="upload_button" value="upload"
+                                            onclick="thisFileUpload();">
+                                    Upload
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col uploads">
+                    <div class="row">
+                        <div class="col-6 col-sm-6 col-md-4 col-lg-3 uploaded">
+                            <div class="row justify-content-center">
+                                <h4>Video</h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-6 col-md-4 col-lg-3 uploaded">
+                            <div class="row justify-content-center">
+                                <h4>Video</h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-6 col-md-4 col-lg-3 uploaded">
+                            <div class="row justify-content-center">
+                                <h4>Video</h4>
+                            </div>
+                        </div>
+                        <div class="col-6 col-sm-6 col-md-4 col-lg-3 uploaded">
+                            <div class="row justify-content-center">
+                                <h4>Video</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <br>
+    <h3 class="m-4">Step 2: Choose a Preset</h3>
+</div>
 {% endblock %}

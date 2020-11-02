@@ -7,7 +7,7 @@ container_name = "videos"
 
 
 # Save a local video file to azure blob storage with a given video_id
-def save_video_to_blob(video_file_location, video_id):
+def save_video_to_blob(video_file_location: str, video_id: str) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string);
 
@@ -26,7 +26,7 @@ def save_video_to_blob(video_file_location, video_id):
 
 
 # Download a video file from azure blob storage with a given video_id
-def download_video_from_blob(video_file_location, video_id):
+def download_video_from_blob(video_file_location: str, video_id: str) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string);
 
@@ -42,7 +42,7 @@ def download_video_from_blob(video_file_location, video_id):
 
 
 # Delete a video file in azure blob storage with a given video_id
-def delete_video_in_blob(video_id):
+def delete_video_in_blob(video_id: str) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string);
 
