@@ -151,8 +151,8 @@ def get_video(video_id: str) -> Video:
 # Inserts a post to database, assuming the corresponding video information has already been inserted
 def insert_post(post: Post) -> None:
     with connection.cursor() as cursor:
-        query = "INSERT INTO Posts VALUES ('{}', '{}', '{}', '{}', 0)" \
-            .format(post.post_id, post.video_id, post.description, post.created)
+        query = "INSERT INTO Posts VALUES ('{}', '{}', '{}', '{}', '{}', 0)" \
+            .format(uuid_to_str(post.post_id), uuid_to_str(post.video_id), post.title, post.description, post.created)
         cursor.execute(query)
 
 
