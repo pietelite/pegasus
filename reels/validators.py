@@ -1,5 +1,5 @@
 from re import fullmatch
-from .sql import get_user
+from .sql import get_user_by_credential
 from .config import USERNAME_LENGTH_MIN, USERNAME_LENGTH_MAX, USERNAME_REGEX, \
     PASSWORD_LENGTH_MIN, PASSWORD_LENGTH_MAX, PASSWORD_REGEX, \
     EMAIL_REGEX
@@ -46,8 +46,8 @@ def valid_password(password) -> list:
 # check if credentials are correct, returns list of all errors
 def correct_credentials(login_id, password) -> list:
     errors = existing_user(login_id)
-    user = get_user(login_id)
-    if user and not password == get_user(login_id).password:
+    user = get_user_by_credential(login_id)
+    if user and not password == get_user_by_credential(login_id).password:
         errors.append('That\'s not the right password')
     return errors
 
@@ -55,6 +55,6 @@ def correct_credentials(login_id, password) -> list:
 # check if a username or email exists
 def existing_user(login_id) -> list:
     errors = []
-    if not get_user(login_id):
+    if not get_user_by_credential(login_id):
         errors.append('It appears that you, {}, don\'t exist yet'.format(login_id))
     return errors

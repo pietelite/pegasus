@@ -1,5 +1,6 @@
 .social {
     width: 80vw;
+    max-width: 1000px;
     margin: 0 auto;
 }
 
@@ -14,13 +15,14 @@
 .social .footer {
     display: flex;
     justify-content: center;
-    margin: 20px 0;
+    margin-bottom: 20px;
 }
 
 .social .post {
     padding: 10px;
     background: rgba(255, 255, 255, .4);
     border-radius: 20px;
+    margin-bottom: 20px;
 }
 
 .social .post .thumbnail {

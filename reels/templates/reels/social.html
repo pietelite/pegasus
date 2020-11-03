@@ -15,18 +15,19 @@
 
     <div class="feed">
         <!-- will eventually loop through videos here to display -->
-        <div class="post" id="p1">
-            <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
-            <div class="info">
-                <p>Author: <b>pain-5387</b></p>
-                <button class="like">Like</button>
-                <p><i>#Likes</i></p>
+        {% for post in posts %}
+            <div class="post" id="{{ forloop.counter0 }}">
+                <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
+                <div class="info">
+                    <p>Author: <b>{{ post.username }}</b></p>
+                    <button class="like">Like</button>
+                    <p>Liked by {{ post.likes_count }}</p>
+                </div>
+                <p>
+                    {{ post.description }}
+                </p>
             </div>
-            <p>
-                Here is the description for my super awesome video. It should tell you how super awesome it is
-                in case you didn't think the thumbnail was super awesome.
-            </p>
-        </div>
+        {% endfor %}
     </div>
 
     <div class="footer">

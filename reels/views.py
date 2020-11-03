@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
 from .session import upload_session_clips
-from .sql import insert_user, get_user, likes_count
+from .sql import insert_user, get_user_by_credential, likes_count, get_all_post_ids, get_post, get_video, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
@@ -55,10 +55,10 @@ def register(request) -> HttpResponse:
     if request.method == 'POST':
         # Add errors
         context['email_errors'] = valid_email(request.POST['email'])
-        if get_user(request.POST['email']):
+        if get_user_by_credential(request.POST['email']):
             context['email_errors'].append('That email already exists')
         context['username_errors'] = valid_username(request.POST['username'])
-        if get_user(request.POST['username']):
+        if get_user_by_credential(request.POST['username']):
             context['username_errors'].append('That username already exists')
         context['password_errors'] = valid_password(request.POST['password'])
 
@@ -89,7 +89,7 @@ def forgot(request) -> HttpResponse:
         if context['username_errors']:
             return HttpResponse(render(request, 'reels/forgot.html', context))
         else:
-            send_recovery_email(get_user)
+            send_recovery_email(get_user_by_credential)
             return HttpResponse(render(request, 'reels/forgotten.html', context))
 
     # GET
@@ -129,6 +129,21 @@ def social(request) -> HttpResponse:
 
     # TODO add something to get relevant context by page
 
-
     context = {}
+    #usernames = {}
+
+    postids = get_all_post_ids()
+    posts = []
+    for pid in postids:
+        post = get_post(pid)
+        v = get_video(post.video_id)
+        u = get_user(v.user_id)
+        post.username = u.user_name
+        posts.append(post)
+        # Need username for "author" label on a post
+        #usernames[post.post_id] = u.user_name
+
+    context["posts"] = posts
+    #context["usernames"] = usernames
+
     return HttpResponse(render(request, 'reels/social.html', context))

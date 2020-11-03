@@ -106,9 +106,17 @@ def delete_user(user_id: str) -> None:
         query = "DELETE FROM Users WHERE UserId = '{}'".format(user_id)
         cursor.execute(query)
 
+def get_user(user_id: str) -> User:
+    with connection.cursor() as cursor:
+        query = "SELECT * FROM Users WHERE UserId = '{}'".format(user_id)
+        cursor.execute(query)
+        row = cursor.fetchone()
+    if row:
+        return User(row[1], row[2], row[3], str_to_uuid(row[0]), row[4], row[5], row[6])
+    raise ValueError('This user id is not valid')
 
 # Gets a User object from data from the database using either the username or email, returns None if no username exists
-def get_user(username_or_email: str) -> User:
+def get_user_by_credential(username_or_email: str) -> User:
     with connection.cursor() as cursor:
         query = "SELECT * FROM Users WHERE UserName = '{}' OR Email = '{}'".format(username_or_email, username_or_email)
         cursor.execute(query)
@@ -172,6 +180,22 @@ def get_post(post_id: str) -> Post:
     if row:
         return Post(row[1], row[2], row[3], str_to_uuid(row[0]), row[4], row[5])
     raise ValueError('This video id is not valid')
+
+# Gets all PostId's, ordered most recent first
+def get_all_post_ids() -> list:
+    with connection.cursor() as cursor:
+        query = "SELECT PostId FROM Posts ORDER BY Created DESC"
+        cursor.execute(query)
+        postsdb = cursor.fetchall()
+
+    if postsdb:
+        postids = []
+        for pdb in postsdb:
+            postids.append(pdb[0])
+
+        return postids
+
+    return []
 
 
 # Adds a tag to a video
