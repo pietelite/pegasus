@@ -29,8 +29,8 @@ dev_machines = [machine.strip() for machine in dev_machines]
 
 DEBUG = socket.gethostname() in dev_machines
 
-# Manually enable/disable debug
-DEBUG = False
+# Manually enable/disable debug for development
+# DEBUG = False
 print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
@@ -150,7 +150,7 @@ STATIC_URL = '/static/'
 # care of compressing your files and creating unique names for each
 # version so they can safely be cached forever.
 # http://whitenoise.evans.io/en/stable/django.html#make-sure-staticfiles-is-configured-correctly
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Media files (uploads)
