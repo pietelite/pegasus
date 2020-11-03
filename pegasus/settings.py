@@ -34,8 +34,6 @@ else:
     DEBUG = False
     # print('DEBUG disabled')
 
-DEBUG = True
-
 # To keep POST data, we cannot append a trailing slash to post URLs
 APPEND_SLASH = False
 
