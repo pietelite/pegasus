@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
 from .session import upload_session_clips
-from .sql import insert_user, get_user
+from .sql import insert_user, get_user, likes_count
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
@@ -126,6 +126,9 @@ def social(request) -> HttpResponse:
     # if POST request (liked a video)
     #   if not logged in, show pop-up to ask for register/login
     #   if logged in, add 'like' to HTML element -> update database
+
+    # TODO add something to get relevant context by page
+
 
     context = {}
     return HttpResponse(render(request, 'reels/social.html', context))
