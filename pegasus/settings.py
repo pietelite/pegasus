@@ -27,17 +27,16 @@ with open('./development_machines.txt', 'r') as dev_machine_file:
 
 dev_machines = [machine.strip() for machine in dev_machines]
 
-if socket.gethostname() in dev_machines:
-    DEBUG = True
-    # print('DEBUG enabled')
-else:
-    DEBUG = False
-    # print('DEBUG disabled')
+DEBUG = socket.gethostname() in dev_machines
+
+# Manually enable/disable debug for development
+# DEBUG = False
+print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
 APPEND_SLASH = False
 
-ALLOWED_HOSTS = ['localhost', 'pegasus-pietelite.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'pegasus-pietelite.azurewebsites.net']
 
 # Application definition
 
@@ -144,15 +143,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = []
 STATIC_URL = '/static/'
 
 # WhiteNoise comes with a storage backend which automatically takes
 # care of compressing your files and creating unique names for each
 # version so they can safely be cached forever.
 # http://whitenoise.evans.io/en/stable/django.html#make-sure-staticfiles-is-configured-correctly
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-STATICFILES_DIRS = []
 
 # Media files (uploads)
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
