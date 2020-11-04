@@ -2,33 +2,37 @@
 
 /* Upload */
 
-.uploads > .row {
+.uploads > .flex-row {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
-    border-left: 5px solid #104060;
-    border-right: 5px solid #104060;
-}
-
-.uploads > .row > .col-lg-3 {
-    display: inline-block;
-    position: relative;
-    margin: 20px;
-    left: 0px;
-    height: 25vh;
-    background-color: gray;
-    box-shadow: 0px 0px 20px #303030;
+    height: 30vh;
+    box-shadow: inset 0px 0px 20px #303030;
     border-radius: 10px;
 }
 
-.uploads > .row > .col-lg-3 .row {
-    height: 100%;
+.uploaded {
+  display: inline-block;
+  height: 80%;
+  margin: 20px;
+  background-color: gray;
+  padding: 10px;
+  width: 10vw;
+  min-width: 200px;
+  max-width: 400px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
-.uploads .row h4 {
-    margin: auto;
-    color: #E0E0E0;
+.uploaded > video {
+  position: absolute;
+  height: 100%;
+  border: 1px solid green;
+  left: 50%;
+  transform: translateX(-50%);
 }
+
 
 .upload {
     width: 120px;

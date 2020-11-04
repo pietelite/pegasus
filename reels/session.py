@@ -1,7 +1,7 @@
 from django.contrib.sessions.backends.base import SessionBase
 from django.core.files import File
 
-from pegasus.settings import MEDIA_ROOT
+from pegasus.settings import MEDIA_ROOT, MEDIA_URL
 from reels.models import User, SessionClip
 import time
 from os import listdir
@@ -43,4 +43,4 @@ def upload_session_clips(session_key: str, files: list) -> list:
 # Gets a list of SessionClips associated with a session
 def get_session_clips(session_key: str) -> list:
     # TODO move to blob storage
-    return [f for f in listdir(MEDIA_ROOT) if f[:5] == 'reels' and f[-4:] == '.mp4']
+    return [MEDIA_URL + f for f in listdir(MEDIA_ROOT) if f[:5] == 'reels' and f[-4:] == '.mp4']

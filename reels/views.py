@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
-from .session import upload_session_clips
+from .session import upload_session_clips, get_session_clips
 from .sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
@@ -116,6 +116,7 @@ def create(request) -> HttpResponse:
 
     # GET
     request.session.set_test_cookie()
+    context['uploaded_clips'] = get_session_clips(request.session.session_key)
     return HttpResponse(render(request, 'reels/create.html', context))
 
 
