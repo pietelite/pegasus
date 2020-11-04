@@ -63,7 +63,7 @@ def init_database() -> None:
         CREATE PROCEDURE UpdateSinglePostLikesCount @post_id char(32)
         AS 
         UPDATE Posts 
-        SET Posts.Likes = (SELECT COUNT(Likes.UserId) FROM Likes WHERE Likes.PostId = @post_id GROUP BY PostId) 
+        SET Posts.Likes = ISNULL((SELECT COUNT(Likes.UserId) FROM Likes WHERE Likes.PostId = @post_id GROUP BY PostId), 0)
         WHERE Posts.PostId = @post_id
         """)
 

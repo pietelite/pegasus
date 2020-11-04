@@ -131,6 +131,7 @@ def create(request) -> HttpResponse:
 
     # GET
     request.session.set_test_cookie()
+    context['uploaded_clips'] = get_session_clips(request.session.session_key)
     return HttpResponse(render(request, 'reels/create.html', context))
 
 

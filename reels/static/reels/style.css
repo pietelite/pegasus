@@ -9,6 +9,12 @@
     to {opacity: 1; top: 0px;}
 }
 
+body {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+}
+
 /* Navbar */
 #navbar {
     position: fixed;
