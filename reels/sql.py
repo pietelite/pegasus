@@ -186,6 +186,17 @@ def get_post(post_id: str) -> Union[Post, None]:
     return None
 
 
+# Get all posts owned by a user
+def get_post_ids_by_user_id(user_id: str) -> list:
+    with connection.cursor() as cursor:
+        query = """
+        SELECT Posts.PostId FROM Posts INNER JOIN Videos ON Posts.VideoId = Videos.VideoId WHERE Videos.UserId = '{}'
+        """.format(user_id)
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    return [row[0] for row in rows]
+
+
 # Gets all PostId's, ordered most recent first
 def get_all_post_ids() -> list:
     # TODO trim this function to only include a subset of all posts somehow
@@ -251,3 +262,12 @@ def likes_count(post_id: str) -> int:
         cursor.execute(query)
         row = cursor.fetchone()
     return int(row[0])
+
+
+# Get admin user, which is also the user which owns all
+def get_admin_user() -> User:
+    with connection.cursor() as cursor:
+        query = "SELECT * FROM Users WHERE UserId = '00000000000000000000000000000000'"
+        cursor.execute(query)
+        row = cursor.fetchone()
+    return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
