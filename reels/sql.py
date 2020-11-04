@@ -222,7 +222,7 @@ def remove_tag(post_tag: PostTag) -> None:
 # Returns whether a video has a video has a like on it
 def has_liked(user_id: str, post_id: str) -> bool:
     with connection.cursor() as cursor:
-        query = "SELECT * FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, post_id)
+        query = "SELECT * FROM Likes WHERE UserId = '{}' AND PostId = '{}'".format(user_id, post_id)
         cursor.execute(query)
         row = cursor.fetchone()
     return bool(row)
@@ -230,8 +230,10 @@ def has_liked(user_id: str, post_id: str) -> bool:
 
 # Toggles a like on a video, returns new like status
 def toggle_like(user_id: str, post_id: str) -> bool:
+    print(user_id)
+    print(post_id)
     if has_liked(user_id, post_id):
-        query = "DELETE FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, post_id)
+        query = "DELETE FROM Likes WHERE UserId = '{}' AND PostId = '{}'".format(user_id, post_id)
         now_liked = False
     else:
         like = Like(user_id, post_id)

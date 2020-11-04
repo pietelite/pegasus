@@ -4,6 +4,10 @@
     margin: 0 auto;
 }
 
+p.not-logged-in {
+    text-align: center;
+}
+
 .social h1 {
     text-align: center;
 }
@@ -43,4 +47,25 @@
 .post .info p:first-child {
     margin-left: 0;
     flex-grow: 1;
+}
+
+.floater {
+    background: #104060;
+    padding: 5px 15px;
+    border-radius: 20px;
+    position: fixed;
+    bottom: 20px;
+}
+
+.floater p {
+    color: white;
+    margin: auto;
+}
+
+.floater.right {
+    right: 20px;
+}
+
+.floater.left {
+    left: 20px;
 }
