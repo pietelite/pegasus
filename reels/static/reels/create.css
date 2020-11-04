@@ -14,7 +14,7 @@
 /* Upload */
 
 #upload-bar {
-    height: 30vh;
+    height: 35vh;
 }
 
 /* Upload Button */
@@ -52,6 +52,7 @@
     white-space: nowrap;
     height: 100%;
     width: 100%;
+    background-color: #B0B0B0;
     box-shadow: inset 0px 0px 20px #303030;
     border-radius: 10px;
 }
@@ -60,22 +61,22 @@
   display: inline-block;
   height: 80%;
   margin: 20px;
-  background-color: gray;
   padding: 10px;
   width: 10vw;
   min-width: 300px;
   max-width: 500px;
   position: relative;
   overflow: hidden;
-  border-radius: 10px;
 }
 
 .uploaded > video {
   position: absolute;
   max-height: 100%;
   max-width: 100%;
+  bottom: 0;
   left: 50%;
   transform: translateX(-50%);
+  border-radius: 10px;
 }
 
 /* Uploaded Video Bar Width */
