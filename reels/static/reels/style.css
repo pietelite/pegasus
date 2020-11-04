@@ -15,6 +15,7 @@
     width: 100vw;
     top: 0;
     left: 0;
+    z-index: 10000;
 }
 
 #navbar ul {

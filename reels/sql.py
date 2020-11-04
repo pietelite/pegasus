@@ -1,9 +1,10 @@
+from typing import Union
+
 from .models import User, Video, Like, PostTag, Post
 from django.db import connection
 
-from .util import str_to_uuid, uuid_to_str
 
-
+# Initialize all objects in database
 def init_database() -> None:
     with connection.cursor() as cursor:
         # Create Users
@@ -95,7 +96,7 @@ def init_database() -> None:
 def insert_user(user: User) -> None:
     with connection.cursor() as cursor:
         query = ("INSERT INTO Users VALUES ('{}', '{}', '{}', '{}', '{}', '{}', 0)"
-                 .format(uuid_to_str(user.user_id), user.user_name, user.password,
+                 .format(user.user_id, user.user_name, user.password,
                          user.email, int(user.created), int(user.last_online)))
         cursor.execute(query)
 
@@ -107,15 +108,26 @@ def delete_user(user_id: str) -> None:
         cursor.execute(query)
 
 
-# Gets a User object from data from the database using either the username or email, returns None if no username exists
-def get_user(username_or_email: str) -> User:
+# Get a User object from data from the database using the user_id
+def get_user(user_id: str) -> Union[User, None]:
+    with connection.cursor() as cursor:
+        query = "SELECT * FROM Users WHERE UserId = '{}'".format(user_id)
+        cursor.execute(query)
+        row = cursor.fetchone()
+    if row:
+        return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
+    return None
+
+
+# Gets a User object from data from the database using either the username or email
+def get_user_by_credential(username_or_email: str) -> Union[User, None]:
     with connection.cursor() as cursor:
         query = "SELECT * FROM Users WHERE UserName = '{}' OR Email = '{}'".format(username_or_email, username_or_email)
         cursor.execute(query)
         row = cursor.fetchone()
     if row:
-        return User(row[1], row[2], row[3], str_to_uuid(row[0]), row[4], row[5], row[6])
-    raise ValueError('This user id is not valid')
+        return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
+    return None
 
 
 # === VIDEOS AND TAGS ===
@@ -124,7 +136,7 @@ def get_user(username_or_email: str) -> User:
 def insert_video(video: Video) -> None:
     with connection.cursor() as cursor:
         query = "INSERT INTO Videos VALUES ('{}', '{}', '{}')" \
-            .format(uuid_to_str(video.video_id), video.user_id, video.created)
+            .format(video.video_id, video.user_id, video.created)
         cursor.execute(query)
 
 
@@ -136,14 +148,14 @@ def delete_video(video_id: str) -> None:
 
 
 # Gets video information if it exists. If it doesn't exist, return None
-def get_video(video_id: str) -> Video:
+def get_video(video_id: str) -> Union[Video, None]:
     with connection.cursor() as cursor:
         query = "SELECT * FROM Videos WHERE VideoId = '{}'".format(video_id)
         cursor.execute(query)
         row = cursor.fetchone()
     if row:
-        return Video(row[1], str_to_uuid(row[0]), row[2])
-    raise ValueError('This video id is not valid')
+        return Video(row[1], row[0], row[2])
+    return None
 
 
 # === POSTS, TAGS, AND LIKES ===
@@ -151,8 +163,8 @@ def get_video(video_id: str) -> Video:
 # Inserts a post to database, assuming the corresponding video information has already been inserted
 def insert_post(post: Post) -> None:
     with connection.cursor() as cursor:
-        query = "INSERT INTO Posts VALUES ('{}', '{}', '{}', '{}', 0)" \
-            .format(post.post_id, post.video_id, post.description, post.created)
+        query = "INSERT INTO Posts VALUES ('{}', '{}', '{}', '{}', '{}', 0)" \
+            .format(post.post_id, post.video_id, post.title, post.description, post.created)
         cursor.execute(query)
 
 
@@ -164,14 +176,32 @@ def delete_post(post_id: str) -> None:
 
 
 # Gets a post from database
-def get_post(post_id: str) -> Post:
+def get_post(post_id: str) -> Union[Post, None]:
     with connection.cursor() as cursor:
         query = "SELECT * FROM Posts WHERE PostId = '{}'".format(post_id)
         cursor.execute(query)
         row = cursor.fetchone()
     if row:
-        return Post(row[1], row[2], row[3], str_to_uuid(row[0]), row[4], row[5])
-    raise ValueError('This video id is not valid')
+        return Post(row[1], row[2], row[3], row[0], row[4], row[5])
+    return None
+
+
+# Gets all PostId's, ordered most recent first
+def get_all_post_ids() -> list:
+    # TODO trim this function to only include a subset of all posts somehow
+    with connection.cursor() as cursor:
+        query = "SELECT PostId FROM Posts ORDER BY Created DESC"
+        cursor.execute(query)
+        postsdb = cursor.fetchall()
+
+    if postsdb:
+        postids = []
+        for pdb in postsdb:
+            postids.append(pdb[0])
+
+        return postids
+
+    return []
 
 
 # Adds a tag to a video
@@ -190,22 +220,22 @@ def remove_tag(post_tag: PostTag) -> None:
 
 
 # Returns whether a video has a video has a like on it
-def has_liked(user_id: str, video_id: str) -> bool:
+def has_liked(user_id: str, post_id: str) -> bool:
     with connection.cursor() as cursor:
-        query = "SELECT * FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, video_id)
+        query = "SELECT * FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, post_id)
         cursor.execute(query)
         row = cursor.fetchone()
     return bool(row)
 
 
 # Toggles a like on a video, returns new like status
-def toggle_like(user_id: str, video_id: str) -> bool:
-    if has_liked(user_id, video_id):
-        query = "DELETE FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, video_id)
+def toggle_like(user_id: str, post_id: str) -> bool:
+    if has_liked(user_id, post_id):
+        query = "DELETE FROM Likes WHERE UserId = '{}' AND VideoId = '{}'".format(user_id, post_id)
         now_liked = False
     else:
-        like = Like(user_id, video_id)
-        query = "INSERT INTO Likes VALUES ('{}', '{}', '{}')".format(like.user_id, like.video_id, like.timestamp)
+        like = Like(user_id, post_id)
+        query = "INSERT INTO Likes VALUES ('{}', '{}', '{}')".format(like.user_id, like.post_id, like.timestamp)
         now_liked = True
     with connection.cursor() as cursor:
         cursor.execute(query)

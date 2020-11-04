@@ -1,7 +1,44 @@
 {% extends "reels/base.html" %}
+{% load static %}
 
 {% block title %}Connect{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{% static 'reels/social.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1>Social Page Content</h1>
+
+<div class="social">
+    <h1>Social Feed</h1>
+    <h3>Connect with Others</h3>
+
+    <div class="feed">
+        <!-- will eventually loop through videos here to display -->
+        {% for post in posts %}
+            <div class="post" id="{{ forloop.counter0 }}">
+                <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
+                <div class="info">
+                    <p>Author: <b>{{ post.username }}</b></p>
+                    <button class="like">Like</button>
+                    <p>Liked by {{ post.likes_count }}</p>
+                </div>
+                <p>
+                    {{ post.description }}
+                </p>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="footer">
+        <!-- page selection -->
+
+        <button id="left"><</button>
+        <button id="b1">1</button>
+        <button id="right">></button>
+    </div>
+</div>
+
+
+
 {% endblock %}

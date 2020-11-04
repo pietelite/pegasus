@@ -1,12 +1,14 @@
 from django.db import models
 import time
-import uuid
+from uuid import UUID, uuid1
+
+from reels.util import uuid_to_str
 
 
 class User:
 
-    def __init__(self, user_name, password, email, user_id=uuid.uuid1(),
-                 created=int(time.time()), last_online=int(time.time()),verified=False):
+    def __init__(self, user_name: str, password: str, email: str, user_id=uuid_to_str(uuid1()),
+                 created=int(time.time()), last_online=int(time.time()), verified=False):
         self.user_name = user_name
         self.password = password
         self.email = email
@@ -18,7 +20,7 @@ class User:
 
 class Video:
 
-    def __init__(self, user_id, video_id=uuid.uuid1(), created=int(time.time())):
+    def __init__(self, user_id: str, video_id=uuid_to_str(uuid1()), created=int(time.time())):
         self.user_id = user_id
         self.video_id = video_id
         self.created = created
@@ -26,7 +28,7 @@ class Video:
 
 class Post:
 
-    def __init__(self, video_id, title, description, post_id=uuid.uuid1(),
+    def __init__(self, video_id: str, title: str, description: str, post_id=uuid_to_str(uuid1()),
                  created=int(time.time()), likes_count=0):
         self.video_id = video_id
         self.title = title
@@ -38,14 +40,14 @@ class Post:
 
 class PostTag:
 
-    def __init__(self, tag_name, post_id):
+    def __init__(self, tag_name: str, post_id: str):
         self.tag_name = tag_name.lower()
         self.post_id = post_id
 
 
 class Like:
 
-    def __init__(self, user_id, post_id, timestamp=int(time.time())):
+    def __init__(self, user_id: str, post_id: str, timestamp=int(time.time())):
         self.user_id = user_id
         self.post_id = post_id
         self.timestamp = timestamp

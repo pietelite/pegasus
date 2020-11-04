@@ -11,17 +11,22 @@ from os import listdir
 
 # Login a user
 def session_login(session: SessionBase, user: User) -> None:
-    session['user_id'] = user.user_id
+    session['user_data'] = user.__dict__
 
 
 # Logout a user
-def session_logout(session: SessionBase, user: User) -> None:
-    session.pop('user_id')
+def session_logout(session: SessionBase) -> None:
+    session.pop('user_data')
 
 
 # Check if a user is already logged in
-def session_is_logged_in(session: SessionBase, user: User) -> None:
-    return session['user_id'] and session['user_id'] == user.user_id
+def session_is_logged_in(session: SessionBase) -> bool:
+    return 'user_data' in session
+
+
+# Get the User of a session, assuming one exists.
+def session_get_user(session: SessionBase) -> User:
+    return session['user_id']
 
 
 # === Uploading ===
