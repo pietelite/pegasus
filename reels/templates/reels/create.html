@@ -14,24 +14,17 @@
         Welcome to Reels. Upload videos to stitch together, like clips from a video game or other short videos.
     </p>
 </div>
-<div class="container step-container">
+<div id="upload-container" class="container step-container">
     <h3 class="m-4">Step 1: Upload</h3>
-    <div id="upload-bar" class="simple-row">
+    <div id="video-bar" class="simple-row">
         <div class="col-2">
-            <div id="upload" style="display: flex; justify-content: center">
-                <script>
-                function thisFileUpload() {
-                    document.getElementById('file_button').click();
-                    document.getElementById('file_button').onchange = function(){document.getElementById('upload_form').submit()};
-                };
-                </script>
-                <form action="/create" class="upload" id="upload_form" method="post" enctype="multipart/form-data">
+            <div id="upload-video" class="simple-row">
+                <form action="/create" class="upload" id="upload_video_form" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="file" id="file_button" name="file" accept="video/mp4" multiple>
+                    <input type="file" id="video_file_button" name="file" accept="video/mp4" multiple>
                 </form>
-                <button id="upload_button" name="upload_button" value="upload"
-                                onclick="thisFileUpload();">
-                        Upload
+                <button onclick="uploadVideo();">
+                        Upload Video
                 </button>
             </div>
         </div>
@@ -50,32 +43,53 @@
             </div>
         </div>
     </div>
+    <h4 class="m-4">(Optional) Upload Music</h4>
+    <div id="music-bar" class="simple-row">
+        <div class="col-2">
+            <div id="upload-music" class="simple-row">
+                <form action="/create" class="upload" id="upload_music_form" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" id="music_file_button" name="file" accept="audio/mp3" multiple>
+                </form>
+                <button onclick="uploadMusic();">
+                        Upload Music
+                </button>
+            </div>
+        </div>
+        <div class="col-10 m-auto">
+            No Music Selected
+        </div>
+    </div>
 </div>
-<div class="container step-container">
+<div id="preset-container" class="container step-container">
     <br>
     <h3 class="m-4">Step 2: Choose a Preset</h3>
-    <form>
-        <input type="radio" id="basic" name="preset" value="basic">
-        <label for="basic">Basic</label><br>
-        <input type="radio" id="cod_sniper" name="preset" value="cod_sniper">
-        <label for="cod_sniper">Call of Duty -- Sniper</label><br>
-        <input type="radio" id="rocket_league" name="preset" value="rocket_league">
-        <label for="rocket_league">Rocket League</label>
-        <button id="make_button" style="display: none"></button>
+    <form id="preset-form" action="/create" method="POST">
+        {% csrf_token %}
+        <!-- THESE RADIO BUTTONS ARE CREATED IN JAVASCRIPT FROM BUTTONS IN preset-grid, see create.js -->
     </form>
+    <div id="preset-grid" style="width: 50%">
+        <div class="row">
+            <!-- Eventually going to make these dynamically loaded with django context or javascript -->
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+            <button id="basic_button" name="basic_button" value="basic" onClick="presetClick('basic');">Basic</button>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+            <button id="cod_sniper_button" name="cod_sniper_button" value="cod_sniper" onClick="presetClick('cod_sniper')">Call of Duty (Sniper)</button>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
+            <button id="rocket_league_button" name="rocket_league_button" value="rocket_league" onClick="presetClick('rocket_league');">Rocket League</button>
+            </div>
+        </div>
+    </div>
 </div>
-<div class="container step-container">
+<div id="submit-container" class="container step-container">
     <br>
     <h3 class="m-4">Step 3: Make your Reel!</h3>
-    <script>
-        function makeReel() {
-            document.getElementById('make_button').click();
-            document.getElementById('file_button').onchange = function(){document.getElementById('upload_form').submit()};
-        };
-    </script>
-    <button name="make_button" value="make"
-                                onclick="document.getElementById('make_button').click();">
-        Go!
-    </button>
+    <button name="make_button" value="make" onclick="document.getElementById('preset-form').submit();">Go!</button>
 </div>
+{% endblock %}
+
+{% block tail %}
+<script src="{% static 'reels/create.js' %}"></script>
 {% endblock %}

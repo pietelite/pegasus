@@ -123,8 +123,17 @@ def create(request) -> HttpResponse:
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
-            upload_session_clips(request.session.session_key, request.FILES.getlist('file'))
-            return HttpResponseRedirect('/create')
+            if request.FILES:
+                video_files = [f for f in request.FILES.getlist('file') if f.name[-4:] == '.mp4']
+                audio_files = [f for f in request.FILES.getlist('file') if f.name[-4:] == '.mp3']
+                upload_session_clips(request.session.session_key, video_files)
+                # TODO upload audio with audio_files
+                return HttpResponseRedirect('/create')
+            elif 'preset' in request.POST:
+                # TODO Make Reel
+                return HttpResponse(render(request, 'reels/compile.html', context))
+            else:
+                return HttpResponseRedirect('/create')
         else:
             # TODO print error about cookies
             return HttpResponse(render(request, 'reels/create.html', context))
