@@ -40,19 +40,23 @@ def session_context(session: SessionBase) -> dict:
 
 # === Uploading ===
 
-# Uploads a video to media folder
+# Uploads a clip to media folder
 def upload_session_clips(session_key: str, files: list) -> list:
     # TODO move to blob storage
     clips = []
     time_sec = int(time.time())
     for i in range(len(files)):
-        destination_location = '{}reels-{}-{}-{}.{}'.format(MEDIA_ROOT, session_key, time_sec, i, 'mp4')
+        destination_location = '{}reels-clip-{}-{}-{}.{}'.format(MEDIA_ROOT, session_key, time_sec, i, 'mp4')
         with open(destination_location, 'wb+') as destination:
             for chunk in files[i].chunks():
                 destination.write(chunk)
         clips.append(SessionClip(destination_location, session_key, {}))
     return clips
 
+
+# Upload a video to media folder
+def save_session_video_location(session_key: str, video_id: str) -> str:
+    return '{}reels-video-{}-{}.{}'.format(MEDIA_ROOT, session_key, video_id, 'mp4')
 
 # Gets a list of SessionClips associated with a session
 def get_session_clips(session_key: str) -> list:
