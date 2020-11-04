@@ -22,7 +22,12 @@
         <li><a href="/create" id="logo"><img src="" alt="logo" width="100px" height="100px"></a></li>
         <li><a href="/create"><span>Create</span></a></li>
         <li><a href="/social"><span>Social</span></a></li>
+        {% if user_data %}
+        <li style="float:right"><a href="/logout"><span>{{ user_data.user_name }}</span></a></li>
+        {% else %}
         <li style="float:right"><a href="/login"><span>Log In</span></a></li>
+        {% endif %}
+
     </ul>
 </div>
 

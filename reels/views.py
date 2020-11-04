@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
 from .models import User
-from .session import upload_session_clips, session_login
+from .session import upload_session_clips, session_login, session_context, session_logout
 from .sql import insert_user, get_user_by_credential, likes_count, get_all_post_ids, get_post, get_video, get_user
 from .session import upload_session_clips, get_session_clips
 from .sql import insert_user, get_user
@@ -21,7 +21,7 @@ def login(request) -> HttpResponse:
     # Might be useful:
     # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
 
-    context = {}
+    context = session_context(request.session)
 
     if request.method == 'POST':
         if request.session.test_cookie_worked():
@@ -33,7 +33,7 @@ def login(request) -> HttpResponse:
                 return HttpResponse(render(request, 'reels/login.html', context))
             else:
                 session_login(request.session, get_user_by_credential(request.POST['username']))
-                return HttpResponse(render(request, 'reels/create.html', context))
+                return HttpResponseRedirect('/create')
         else:
             context['submit_errors'] = ['Please enable cookies and try again']
             return HttpResponse(render(request, 'reels/login.html', context))
@@ -41,6 +41,17 @@ def login(request) -> HttpResponse:
     # GET
     request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/login.html', context))
+
+
+# Handles request relating to logout.html
+def logout(request) -> HttpResponse:
+    # TODO make more robust
+
+    session_logout(request.session)
+    context = session_context(request.session)
+
+    # GET
+    return HttpResponse(render(request, 'reels/logout.html', context))
 
 
 # Handles requests relating to register.html
@@ -53,7 +64,7 @@ def register(request) -> HttpResponse:
     #   if register is invalid, send rendered HttpResponse with failure
     #   if register is valid, send user to social
 
-    context = {}
+    context = session_context(request.session)
 
     if request.method == 'POST':
         # Add errors
@@ -85,7 +96,7 @@ def forgot(request) -> HttpResponse:
     #   if information is invalid, send rendered HttpResponse with failure
     #   if information is success, send rendered HttpResponse to prompt checking email
 
-    context = {}
+    context = session_context(request.session)
 
     if request.method == 'POST':
         context['username_errors'] = existing_user(request.POST['username'])
@@ -107,7 +118,8 @@ def create(request) -> HttpResponse:
     #   if uploading, put uploaded data into memory (is it done through POST?)
     #   if done, stitch video (call algorithms), then return video
 
-    context = {}
+    context = session_context(request.session)
+
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
@@ -132,7 +144,7 @@ def social(request) -> HttpResponse:
 
     # TODO add something to get relevant context by page
 
-    context = {}
+    context = session_context(request.session)
     #usernames = {}
 
     postids = get_all_post_ids()

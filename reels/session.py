@@ -11,6 +11,7 @@ from os import listdir
 
 # Login a user
 def session_login(session: SessionBase, user: User) -> None:
+    print("user logged in")
     session['user_data'] = user.__dict__
 
 
@@ -21,13 +22,22 @@ def session_logout(session: SessionBase) -> None:
 
 # Check if a user is already logged in
 def session_is_logged_in(session: SessionBase) -> bool:
+    print("is user logged in? {}".format('user_data' in session))
     return 'user_data' in session
 
 
 # Get the User of a session, assuming one exists.
 def session_get_user(session: SessionBase) -> User:
-    return session['user_id']
+    d = session['user_data']
+    return User(d['user_name'], d['password'], d['email'], d['user_id'],
+                d['created'], d['last_online'], d['verified'])
 
+
+def session_context(session: SessionBase) -> dict:
+    if session_is_logged_in(session):
+        return {'user_data': session['user_data']}
+    else:
+        return {}
 
 # === Uploading ===
 
