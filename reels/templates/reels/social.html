@@ -13,30 +13,44 @@
     <h1>Social Feed</h1>
     <h3>Connect with Others</h3>
 
-    <div class="feed">
-        <!-- will eventually loop through videos here to display -->
-        {% for post in posts %}
-            <div class="post" id="{{ forloop.counter0 }}">
-                <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
-                <div class="info">
-                    <p>Author: <b>{{ post.username }}</b></p>
-                    <button class="like">Like</button>
-                    <p>Liked by {{ post.likes_count }}</p>
+    {% if not user_id %}
+        <p class="not-logged-in">You must be <a href="/login">logged in</a> to view posts.</p>
+    {% else %}
+        <div class="feed">
+            {% for post in posts %}
+                <div class="post" id="p{{ forloop.counter0 }}">
+                    <img class="thumbnail" src="{% static 'reels/thumbnail.png' %}"/>
+                    <div class="info">
+                        <p>Author: <b>{{ post.username }}</b></p>
+                        <form action="/social" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.post_id }}" />
+                            <input type="hidden" name="user_id" value="{{ user_id }}" />
+                            <button class="like">{% if post.has_liked %}Unlike{% else %}Like{% endif %}</button>
+                        </form>
+                        <p>Liked by {{ post.likes_count }}</p>
+                    </div>
+                    <p>
+                        {{ post.description }}
+                    </p>
                 </div>
-                <p>
-                    {{ post.description }}
-                </p>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
 
-    <div class="footer">
-        <!-- page selection -->
+        <div class="footer">
+            <button id="left"><</button>
+            <button id="b1">1</button>
+            <button id="right">></button>
+        </div>
 
-        <button id="left"><</button>
-        <button id="b1">1</button>
-        <button id="right">></button>
-    </div>
+        <div class="floater right">
+            <p>Create post</p>
+        </div>
+
+        <div class="floater left">
+            <p>My posts</p>
+        </div>
+    {% endif %}
 </div>
 
 

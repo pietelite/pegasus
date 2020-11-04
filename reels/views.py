@@ -3,8 +3,8 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 from .models import User
 from .session import upload_session_clips, session_login, session_context, session_logout
-from .sql import insert_user, get_user_by_credential, likes_count, get_all_post_ids, get_post, get_video, get_user
-from .session import upload_session_clips, get_session_clips
+from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
+from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
 from .sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
@@ -144,22 +144,26 @@ def social(request) -> HttpResponse:
     #   if logged in, add 'like' to HTML element -> update database
 
     # TODO add something to get relevant context by page
+    # https://django.cowhite.com/blog/working-with-url-get-post-parameters-in-django/
 
     context = session_context(request.session)
-    #usernames = {}
 
-    postids = get_all_post_ids()
-    posts = []
-    for pid in postids:
-        post = get_post(pid)
-        v = get_video(post.video_id)
-        u = get_user(v.user_id)
-        post.username = u.user_name
-        posts.append(post)
-        # Need username for "author" label on a post
-        #usernames[post.post_id] = u.user_name
+    if session_is_logged_in(request.session):
+        context["user_id"] = session_get_user(request.session).user_id
 
-    context["posts"] = posts
-    #context["usernames"] = usernames
+        if request.method == 'POST':
+            toggle_like(request.POST['user_id'], request.POST['post_id'])
+
+        postids = get_all_post_ids()
+        posts = []
+        for pid in postids:
+            post = get_post(pid)
+            v = get_video(post.video_id)
+            u = get_user(v.user_id)
+            post.username = u.user_name
+            post.has_liked = has_liked(u.user_id, post.post_id)
+            posts.append(post)
+
+        context["posts"] = posts
 
     return HttpResponse(render(request, 'reels/social.html', context))
