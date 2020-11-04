@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
-from .models import User
+from .models import User, Post
 from .session import upload_session_clips, session_login, session_context, session_logout
-from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
+from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like, delete_post, insert_post, update_post
 from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
 from .sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
@@ -143,6 +143,36 @@ def create(request) -> HttpResponse:
     context['uploaded_clips'] = get_session_clips(request.session.session_key)
     return HttpResponse(render(request, 'reels/create.html', context))
 
+# Handles requests to create or edit a post
+def post_creation(request) -> HttpResponse:
+    # TODO implement
+    # if GET request, send rendered HttpResponse template
+    # if POST request, insert/update post, then redirect to /social
+
+
+
+    if request.method == 'POST':
+        if bool(request.POST.get('delete_post')):
+            delete_post(request.POST['post_id'])
+        elif bool(request.POST.get('create_post')):
+            if request.POST.get('post_id'):
+                # editing post
+                update_post(request.POST['post_id'], request.POST['title'], request.POST['description'])
+            else:
+                # creating new post
+                post = Post('828743f41ded11ebad0f7c67a220d1e4', request.POST['title'], request.POST['description'])
+                insert_post(post)
+
+        # Nothing to do if "cancel" was pressed
+
+        return HttpResponseRedirect('/social')
+
+    context = session_context(request.session)
+
+    if request.GET.get('post_id', False):
+        context['post'] = get_post(request.GET['post_id'])
+
+    return HttpResponse(render(request, 'reels/post_creation.html', context))
 
 # Handles requests relating to social.html
 def social(request) -> HttpResponse:

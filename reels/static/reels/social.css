@@ -8,12 +8,12 @@ p.not-logged-in {
     text-align: center;
 }
 
-.social h1 {
+.social h1, h3 {
     text-align: center;
 }
 
 .social h3 {
-    text-align: center;
+    margin-bottom: 30px;
 }
 
 .social .footer {
@@ -27,6 +27,7 @@ p.not-logged-in {
     background: rgba(255, 255, 255, .4);
     border-radius: 20px;
     margin-bottom: 20px;
+    box-shadow: 0px 0px 15px #303030;
 }
 
 .social .post .thumbnail {
@@ -58,6 +59,11 @@ p.not-logged-in {
 }
 
 .floater p {
+    color: white;
+    margin: auto;
+}
+
+.floater a {
     color: white;
     margin: auto;
 }
