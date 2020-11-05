@@ -296,3 +296,18 @@ def get_admin_user() -> User:
 
 def escape_apostrophes(s: str) -> str:
     return s.replace('\'', '\'\'')
+
+
+# AGGREGATES AND SEQUENCES
+
+def get_users_post_count() -> list:
+    with connection.cursor() as cursor:
+        query = """
+SELECT Videos.UserID, COUNT(PostID) as NumPosts
+FROM Videos JOIN Posts ON Posts.VideoID = Videos.VideoID
+GROUP BY Videos.UserId
+ORDER BY NumPosts DESC
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    return rows

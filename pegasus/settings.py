@@ -37,7 +37,7 @@ to development_machines.txt
     """.format(socket.gethostname()))
 
 # Manually enable/disable debug for development
-DEBUG = True
+# DEBUG = True
 # print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
