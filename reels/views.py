@@ -204,7 +204,7 @@ def social(request) -> HttpResponse:
             u = get_user(v.user_id)
             post.user_id = v.user_id
             post.username = u.user_name
-            post.has_liked = has_liked(u.user_id, post.post_id)
+            post.has_liked = has_liked(context["user_id"], post.post_id)
             posts.append(post)
 
         context["posts"] = posts
