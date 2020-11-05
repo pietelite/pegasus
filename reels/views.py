@@ -202,6 +202,7 @@ def social(request) -> HttpResponse:
             post = get_post(pid)
             v = get_video(post.video_id)
             u = get_user(v.user_id)
+            post.user_id = v.user_id
             post.username = u.user_name
             post.has_liked = has_liked(u.user_id, post.post_id)
             posts.append(post)

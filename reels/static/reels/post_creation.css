@@ -47,21 +47,23 @@
 
 .create-post-form .buttons button {
     margin: 0 5px;
-    background: transparent;
-    border-radius: 10px;
+    background-color: transparent;
+    padding: none;
     border-style: solid;
     transition: background .2s, border-color .2s, color .2s;
+    color: #212529;
+    border-color: #212529;
 }
 
 .buttons button.good {
-    background: #CDE5F0;
+    background-color: #CDE5F0;
 }
 
-.buttons .neutral {
+.buttons button.neutral {
 
 }
 
-.buttons .danger {
+.buttons button.danger {
     border-color: #DF6881;
     color: #DF6881;
 }
