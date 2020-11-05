@@ -38,8 +38,10 @@ def session_context(session: SessionBase) -> dict:
     context = {}
     if session_is_logged_in(session):
         context['user_data'] = session['user_data']
-    context['uploaded_clips'] = get_session_clips(session.session_key)
-    context['uploaded_audio'] = get_session_audio(session.session_key)
+    context['uploaded_clips'] = [MEDIA_URL + c.file_name for c in get_session_clips(session.session_key)]
+    session_audio = get_session_audio(session.session_key)
+    if session_audio:
+        context['uploaded_audio'] = MEDIA_URL + session_audio.file_name
     return context
 
 
@@ -52,11 +54,11 @@ def upload_session_clips(session_key: str, files: list) -> list:
     clips = []
     time_sec = int(time.time())
     for i in range(len(files)):
-        destination_location = '{}reels-clip-{}-{}-{}.{}'.format(MEDIA_ROOT, session_key, time_sec, i, 'mp4')
-        with open(destination_location, 'wb+') as destination:
+        destination_name = 'reels-clip-{}-{}-{}.{}'.format(session_key, time_sec, i, 'mp4')
+        with open(MEDIA_ROOT + destination_name, 'wb+') as destination:
             for chunk in files[i].chunks():
                 destination.write(chunk)
-        clips.append(SessionClip(destination_location, session_key, {}))
+        clips.append(SessionClip(destination_name, session_key, {}))
     return clips
 
 
@@ -64,7 +66,7 @@ def upload_session_clips(session_key: str, files: list) -> list:
 def get_session_clips(session_key: str) -> list:
     # TODO use cached dictionary for this instead for efficiency
     regex = r'^reels-clip-.{32}-[0-9]{10}-[0-9]{0,5}\.[a-zA-Z0-9]{0,10}$'
-    return [SessionClip(MEDIA_ROOT + f, session_key, {}) for f in listdir(MEDIA_ROOT)
+    return [SessionClip(f, session_key, {}) for f in listdir(MEDIA_ROOT)
             if re.match(regex, f.lower())
             and f[11:43] == session_key]
 
@@ -73,11 +75,11 @@ def get_session_clips(session_key: str) -> list:
 # MEDIA format: /media/reels-audio-{session_key}.mp3
 # This assumes mp3 format
 def upload_session_audio(session_key: str, file: File) -> SessionAudio:
-    destination_location = '{}reels-audio-{}-{}.{}'.format(MEDIA_ROOT, session_key, int(time.time()), 'mp3')
-    with open(destination_location, 'wb+') as destination:
+    destination_name = 'reels-audio-{}-{}.{}'.format(session_key, int(time.time()), 'mp3')
+    with open(MEDIA_ROOT + destination_name, 'wb+') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
-    return SessionAudio(destination_location, session_key, {})
+    return SessionAudio(destination_name, session_key, {})
 
 
 # Gets the audio associated with a session
@@ -86,10 +88,10 @@ def get_session_audio(session_key: str) -> Union[SessionAudio, None]:
     for f in listdir(MEDIA_ROOT):
         if (re.match(regex, f)
                 and f[12:44] == session_key):
-            return SessionAudio(MEDIA_ROOT + f, session_key, {})
+            return SessionAudio(f, session_key, {})
     return None
 
 
 # Upload a video to media folder
-def save_session_video_location(session_key: str, video_id: str) -> str:
-    return '{}reels-video-{}-{}.{}'.format(MEDIA_ROOT, session_key, video_id, 'mp4')
+def save_session_video_name(session_key: str, video_id: str) -> str:
+    return '{}reels-video-{}-{}.{}'.format(MEDIA_URL, session_key, video_id, 'mp4')

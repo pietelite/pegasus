@@ -2,6 +2,8 @@
 # All functions return the string location of the final compiled video
 #   or empty string if no video was created
 from typing import List, Union
+
+from pegasus.settings import MEDIA_URL
 from .migrations import *
 from django.contrib.sessions.backends.base import SessionBase
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -10,7 +12,7 @@ from moviepy.video.io.VideoFileClip import VideoFileClip
 
 from .azure import save_video_to_blob
 from .models import SessionClip, SessionAudio, Video, User
-from .session import save_session_video_location, get_session_clips, get_session_audio, session_is_logged_in, \
+from .session import save_session_video_name, get_session_clips, get_session_audio, session_is_logged_in, \
     session_get_user
 from .sql import insert_video, get_admin_user
 
@@ -39,7 +41,7 @@ def make(session: SessionBase, preset: str) -> Union[Video, None]:
 def make_basic(session: SessionBase, user: User) -> Video:
 
     # Create VideoFileClips
-    clips = [VideoFileClip(clip.location) for clip in get_session_clips(session.session_key)]
+    clips = [VideoFileClip(clip.file_name) for clip in get_session_clips(session.session_key)]
 
     # Concatenate videos
     final = concatenate_videoclips(clips, method="compose")
@@ -47,7 +49,7 @@ def make_basic(session: SessionBase, user: User) -> Video:
     # Add audio, only if there is audio
     session_audio = get_session_audio(session.session_key)
     if session_audio:
-        audio_clip = AudioFileClip(session_audio.location)
+        audio_clip = AudioFileClip(session_audio.file_name)
         # Attach audio to video, but make it only as long as the videos are
         # TODO: Manage case where videos are longer than audio clip
         final = final.set_audio(audio_clip.set_duration(sum([clip.duration for clip in clips])))
@@ -56,7 +58,7 @@ def make_basic(session: SessionBase, user: User) -> Video:
     # Create Video object for easy manipulation
     video = Video(user_id=user.user_id)
     # Write file to local storage
-    final.write_videofile(save_session_video_location(session.session_key, video.video_id), verbose=True,
+    final.write_videofile(MEDIA_URL + save_session_video_name(session.session_key, video.video_id), verbose=True,
                           codec="libx264",
                           audio_codec='aac',
                           temp_audiofile='temp-audio-{}-{}.m4a'.format(session.session_key, video.video_id),
@@ -66,7 +68,7 @@ def make_basic(session: SessionBase, user: User) -> Video:
     # Save video information to relational database
     insert_video(video=video)
     # Save video to cold storage
-    save_video_to_blob(video_file_location=save_session_video_location(session.session_key, video.video_id),
+    save_video_to_blob(video_file_location=MEDIA_URL + save_session_video_name(session.session_key, video.video_id),
                        video_id=video.video_id)
     return video
 
