@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
+from .compile import make
 from .models import User
-from .session import upload_session_clips, session_login, session_context, session_logout
+from .session import upload_session_clips, session_login, session_context, session_logout, upload_session_audio
 from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
 from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
 from .sql import insert_user, get_user
@@ -112,35 +113,34 @@ def forgot(request) -> HttpResponse:
 
 # Handles requests relating to create.html
 def create(request) -> HttpResponse:
-    # TODO implement
     # if GET request, send rendered HttpResponse template
     # if POST request
     #   if uploading, put uploaded data into memory (is it done through POST?)
     #   if done, stitch video (call algorithms), then return video
 
     context = session_context(request.session)
-
+    print(context)
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
             if request.FILES:
-                video_files = [f for f in request.FILES.getlist('file') if f.name[-4:] == '.mp4']
-                audio_files = [f for f in request.FILES.getlist('file') if f.name[-4:] == '.mp3']
+                video_files = [f for f in request.FILES.getlist('video_file') if f.name[-4:] == '.mp4']
+                if 'audio_file' in request.FILES and request.FILES['audio_file'].name[-4:] == '.mp3':
+                    upload_session_audio(request.session.session_key, request.FILES['audio_file'])
                 upload_session_clips(request.session.session_key, video_files)
-                # TODO upload audio with audio_files
                 return HttpResponseRedirect('/create')
             elif 'preset' in request.POST:
-                # TODO Make Reel
+                make(request.session, request.POST['preset'])
                 return HttpResponse(render(request, 'reels/compile.html', context))
             else:
+                # TODO do something to say that a preset choice is required
                 return HttpResponseRedirect('/create')
         else:
-            # TODO print error about cookies
+            # TODO print error about enabling cookies
             return HttpResponse(render(request, 'reels/create.html', context))
 
     # GET
     request.session.set_test_cookie()
-    context['uploaded_clips'] = get_session_clips(request.session.session_key)
     return HttpResponse(render(request, 'reels/create.html', context))
 
 

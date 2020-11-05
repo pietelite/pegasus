@@ -95,9 +95,13 @@ def init_database() -> None:
 # Inserts the user into the database
 def insert_user(user: User) -> None:
     with connection.cursor() as cursor:
-        query = ("INSERT INTO Users VALUES ('{}', '{}', '{}', '{}', '{}', '{}', 0)"
-                 .format(user.user_id, user.user_name, user.password,
-                         user.email, int(user.created), int(user.last_online)))
+        query = "INSERT INTO Users VALUES ('{}', '{}', '{}', '{}', '{}', '{}', 0)" \
+            .format(user.user_id,
+                    escape_apostrophes(user.user_name),
+                    escape_apostrophes(user.password),
+                    user.email,
+                    int(user.created),
+                    int(user.last_online))
         cursor.execute(query)
 
 
@@ -122,7 +126,9 @@ def get_user(user_id: str) -> Union[User, None]:
 # Gets a User object from data from the database using either the username or email
 def get_user_by_credential(username_or_email: str) -> Union[User, None]:
     with connection.cursor() as cursor:
-        query = "SELECT * FROM Users WHERE UserName = '{}' OR Email = '{}'".format(username_or_email, username_or_email)
+        query = "SELECT * FROM Users WHERE UserName = '{}' OR Email = '{}'". \
+            format(escape_apostrophes(username_or_email),
+                   escape_apostrophes(username_or_email))
         cursor.execute(query)
         row = cursor.fetchone()
     if row:
@@ -136,7 +142,9 @@ def get_user_by_credential(username_or_email: str) -> Union[User, None]:
 def insert_video(video: Video) -> None:
     with connection.cursor() as cursor:
         query = "INSERT INTO Videos VALUES ('{}', '{}', '{}')" \
-            .format(video.video_id, video.user_id, video.created)
+            .format(video.video_id,
+                    video.user_id,
+                    video.created)
         cursor.execute(query)
 
 
@@ -164,7 +172,11 @@ def get_video(video_id: str) -> Union[Video, None]:
 def insert_post(post: Post) -> None:
     with connection.cursor() as cursor:
         query = "INSERT INTO Posts VALUES ('{}', '{}', '{}', '{}', '{}', 0)" \
-            .format(post.post_id, post.video_id, post.title, post.description, post.created)
+            .format(post.post_id,
+                    post.video_id,
+                    escape_apostrophes(post.title),
+                    escape_apostrophes(post.description),
+                    post.created)
         cursor.execute(query)
 
 
@@ -222,11 +234,12 @@ def add_tag(post_tag: PostTag) -> None:
         cursor.execute(query)
 
 
-# Removes a tag from a video
+# Removes a tag from a video.
 def remove_tag(post_tag: PostTag) -> None:
     with connection.cursor() as cursor:
         query = "DELETE FROM Tags WHERE Name = '{}' AND PostId = '{}'" \
-            .format(post_tag.tag_name.lower(), post_tag.post_id)
+            .format(post_tag.tag_name.lower(),
+                    post_tag.post_id)
         cursor.execute(query)
 
 
@@ -267,7 +280,11 @@ def likes_count(post_id: str) -> int:
 # Get admin user, which is also the user which owns all
 def get_admin_user() -> User:
     with connection.cursor() as cursor:
-        query = "SELECT * FROM Users WHERE UserId = '00000000000000000000000000000000'"
+        query = "SELECT * FROM Users WHERE UserId = '{}'".format('0' * 32)
         cursor.execute(query)
         row = cursor.fetchone()
     return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
+
+
+def escape_apostrophes(s: str) -> str:
+    return s.replace('\'', '\'\'')

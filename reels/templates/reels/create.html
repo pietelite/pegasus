@@ -21,7 +21,7 @@
             <div id="upload-video" class="simple-row">
                 <form action="/create" class="upload" id="upload_video_form" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="file" id="video_file_button" name="file" accept="video/mp4" multiple>
+                    <input type="file" id="video_file_button" name="video_file" accept="video/mp4" multiple>
                 </form>
                 <button onclick="uploadVideo();">
                         Upload Video
@@ -44,20 +44,24 @@
         </div>
     </div>
     <h4 class="m-4">(Optional) Upload Music</h4>
-    <div id="music-bar" class="simple-row">
+    <div id="audio-bar" class="simple-row">
         <div class="col-2">
-            <div id="upload-music" class="simple-row">
-                <form action="/create" class="upload" id="upload_music_form" method="POST" enctype="multipart/form-data">
+            <div id="upload-audio" class="simple-row">
+                <form action="/create" class="upload" id="upload_audio_form" method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
-                    <input type="file" id="music_file_button" name="file" accept="audio/mp3" multiple>
+                    <input type="file" id="audio_file_button" name="audio_file" accept="audio/mp3" multiple>
                 </form>
-                <button onclick="uploadMusic();">
-                        Upload Music
+                <button onclick="uploadAudio();">
+                        Upload audio
                 </button>
             </div>
         </div>
         <div class="col-10 m-auto">
-            No Music Selected
+            {% if uploaded_audio %}
+            {{ uploaded_audio }}
+            {% else %}
+            No audio uploaded
+            {% endif %}
         </div>
     </div>
 </div>

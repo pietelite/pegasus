@@ -56,16 +56,16 @@ class Like:
 # Class for a clip uploaded by a user
 class SessionClip:
 
-    def __init__(self, location: str, session_id: str, preset_config: dict):
+    def __init__(self, location: str, session_key: str, preset_config: dict):
         self.location = location
-        self.session_id = session_id
+        self.session_key = session_key
         self.preset_config = preset_config
 
 
 # Class for an audio file uploaded by a user
 class SessionAudio:
 
-    def __init__(self, location: str, session_id: str, preset_config: dict):
+    def __init__(self, location: str, session_key: str, preset_config: dict):
         self.location = location
-        self.session_id = session_id
+        self.session_key = session_key
         self.preset_config = preset_config

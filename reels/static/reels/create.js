@@ -1,23 +1,24 @@
+button_color_unclicked = '#104060'
+button_color_clicked = '#F64086'
+
 function uploadVideo() {
     document.getElementById('video_file_button').click();
     document.getElementById('video_file_button').onchange = function(){document.getElementById('upload_video_form').submit()};
 };
 
-function uploadMusic() {
-    document.getElementById('music_file_button').click();
-    document.getElementById('music_file_button').onchange = function(){document.getElementById('upload_music_form').submit()};
+function uploadAudio() {
+    document.getElementById('audio_file_button').click();
+    document.getElementById('audio_file_button').onchange = function(){document.getElementById('upload_audio_form').submit()};
 };
 
-var chosenPresetButton;
+var chosenPresetButton = document.getElementById('basic_button');
 function presetClick(type) {
-    if (chosenPresetButton) {
-        Object.assign(chosenPresetButton.style, {
-            backgroundColor: '#104060'
-        });
-    }
+    Object.assign(chosenPresetButton.style, {
+        backgroundColor: button_color_unclicked
+    });
     chosenPresetButton = document.getElementById(type + '_button');
     Object.assign(chosenPresetButton.style, {
-        backgroundColor: 'red'
+        backgroundColor: button_color_clicked
     })
     document.getElementById(type + '_radio').click();
 }
@@ -28,8 +29,15 @@ for (but of document.getElementById('preset-container').getElementsByTagName('bu
     radio.type = 'radio';
     radio.id = but.value + '_radio';
     radio.name = 'preset';
+    radio.value = but.value;
+    if (but.value == 'basic') {
+        radio.checked = 'checked';
+        Object.assign(but.style, {
+            backgroundColor: button_color_clicked
+        });
+    }
     Object.assign(radio.style, {
-        display: 'none'
+        //display: 'none'
     });
     document.getElementById('preset-form').appendChild(radio);
 }

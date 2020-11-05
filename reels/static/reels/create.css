@@ -84,22 +84,22 @@
   border-radius: 10px;
 }
 
-/* Music */
+/* Audio */
 
-#music-bar {
+#audio-bar {
     height: 15vh;
 }
 
-#upload-music {
+#upload-audio {
     width: 100%;
     height: 100%;
 }
 
-#upload-music > form {
+#upload-audio > form {
     display: none;
 }
 
-#upload-music > button {
+#upload-audio > button {
     width: 100%;
     height: 50%;
     margin: auto;

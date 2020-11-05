@@ -3,79 +3,81 @@
 #   or empty string if no video was created
 from typing import List, Union
 
+from django.contrib.sessions.backends.base import SessionBase
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 from .azure import save_video_to_blob
 from .models import SessionClip, SessionAudio, Video
-from moviepy.editor import CompositeVideoClip
-from .session import session_is_logged_in, session_get_user, save_session_video_location
-from .sql import get_admin_user, insert_video
+from .session import save_session_video_location, get_session_clips, get_session_audio, session_is_logged_in, \
+    session_get_user
+from .sql import insert_video, get_admin_user
 
 
 # Main function
-def make(session_key: str, user_id: str, session_clips: List[SessionClip], session_audio: SessionAudio, preset: str) -> \
-Union[Video, None]:
+def make(session: SessionBase, preset: str) -> Union[Video, None]:
     preset = preset.lower()
-
-    if preset == 'default':
-        return make_default(session_key, user_id, session_clips, session_audio)
+    print('PRESET: ' + preset)
+    if preset == 'basic':
+        return make_basic(session)
     if preset == 'call_of_duty_sniper':
-        return make_call_of_duty_sniper(session_key, user_id, session_clips, session_audio)
+        return make_call_of_duty_sniper(session)
     if preset == 'rocket_league':
-        return make_rocket_league(session_key, user_id, session_clips, session_audio)
+        return make_rocket_league(session)
     else:
-        print("This preset is not implemented")
-        return None
+        raise ValueError("This preset is not implemented")
 
 
 # Simplest possible algorithm
-def make_default(session_key: str, user_id: str, session_clips: List[SessionClip],
-                 session_audio: SessionAudio, audio_clip=None) -> Video:
-    # TODO implement
+def make_basic(session: SessionBase) -> Video:
+    print('make run')
+    # Get user info
+    if session_is_logged_in(session):
+        user = session_get_user(session)
+    else:
+        user = get_admin_user()
 
-    paths = [clip.location for clip in session_clips]
-    clips = []
-    total_length = 0
-    for element in paths:
-        clip = VideoFileClip(element)
-        total_length += clip.duration
-        clips.append(clip)
+    # Create VideoFileClips
+    clips = [VideoFileClip(clip.location) for clip in get_session_clips(session.session_key)]
 
+    # Concatenate videos
     final = concatenate_videoclips(clips, method="compose")
 
-    if audio_clip is None:
+    # Add audio, only if there is audio
+    session_audio = get_session_audio(session.session_key)
+    if session_audio:
         audio_clip = AudioFileClip(session_audio.location)
-        final = final.set_audio(audio_clip.set_duration(total_length))
+        # Attach audio to video, but make it only as long as the videos are
+        # TODO: Manage case where videos are longer than audio clip
+        final = final.set_audio(audio_clip.set_duration(sum([clip.duration for clip in clips])))
 
     # === Final Saving ===
     # Create Video object for easy manipulation
-    video = Video(user_id=user_id)
+    video = Video(user_id=user.user_id)
     # Write file to local storage
-    final.write_videofile(save_session_video_location(session_key, video.video_id), verbose=True,
+    final.write_videofile(save_session_video_location(session.session_key, video.video_id), verbose=True,
                           codec="libx264",
                           audio_codec='aac',
-                          temp_audiofile='temp-audio.m4a',
+                          temp_audiofile='temp-audio-{}-{}.m4a'.format(session.session_key, video.video_id),
                           remove_temp=True,
                           preset="medium",
                           ffmpeg_params=["-profile:v", "baseline", "-level", "3.0", "-pix_fmt", "yuv420p"])
     # Save video information to relational database
     insert_video(video=video)
     # Save video to cold storage
-    save_video_to_blob(video_file_location=save_session_video_location(session_key, video.video_id),
+    save_video_to_blob(video_file_location=save_session_video_location(session.session_key, video.video_id),
                        video_id=video.video_id)
-
     return video
 
 
 # Example of complicated algorithm
-def make_call_of_duty_sniper(session_key: str, user_id: str, session_clips: list, session_audio: SessionAudio) -> Video:
+def make_call_of_duty_sniper(session: SessionBase) -> Video:
     # TODO implement
-    pass
+    raise ValueError("This preset is not implemented")
 
 
 # Rocket League Reel
-def make_rocket_league(session_key: str, user_id: str, session_clips: list, session_audio: SessionAudio) -> Video:
+def make_rocket_league(session: SessionBase) -> Video:
     # TODO implement
-    pass
+    raise ValueError("This preset is not implemented")
