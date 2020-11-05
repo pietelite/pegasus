@@ -2,14 +2,14 @@
 # All functions return the string location of the final compiled video
 #   or empty string if no video was created
 from typing import List, Union
-
+from .migrations import *
 from django.contrib.sessions.backends.base import SessionBase
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 from .azure import save_video_to_blob
-from .models import SessionClip, SessionAudio, Video
+from .models import SessionClip, SessionAudio, Video, User
 from .session import save_session_video_location, get_session_clips, get_session_audio, session_is_logged_in, \
     session_get_user
 from .sql import insert_video, get_admin_user
@@ -19,24 +19,24 @@ from .sql import insert_video, get_admin_user
 def make(session: SessionBase, preset: str) -> Union[Video, None]:
     preset = preset.lower()
     print('PRESET: ' + preset)
-    if preset == 'basic':
-        return make_basic(session)
-    if preset == 'call_of_duty_sniper':
-        return make_call_of_duty_sniper(session)
-    if preset == 'rocket_league':
-        return make_rocket_league(session)
-    else:
-        raise ValueError("This preset is not implemented")
-
-
-# Simplest possible algorithm
-def make_basic(session: SessionBase) -> Video:
-    print('make run')
     # Get user info
     if session_is_logged_in(session):
         user = session_get_user(session)
     else:
         user = get_admin_user()
+
+    if preset == 'basic':
+        return make_basic(session, user)
+    if preset == 'call_of_duty_sniper':
+        return make_call_of_duty_sniper(session, user)
+    if preset == 'rocket_league':
+        return make_rocket_league(session, user)
+    else:
+        raise ValueError("This preset is not implemented")
+
+
+# Simplest possible algorithm
+def make_basic(session: SessionBase, user: User) -> Video:
 
     # Create VideoFileClips
     clips = [VideoFileClip(clip.location) for clip in get_session_clips(session.session_key)]
@@ -72,12 +72,12 @@ def make_basic(session: SessionBase) -> Video:
 
 
 # Example of complicated algorithm
-def make_call_of_duty_sniper(session: SessionBase) -> Video:
+def make_call_of_duty_sniper(session: SessionBase, user: User) -> Video:
     # TODO implement
     raise ValueError("This preset is not implemented")
 
 
 # Rocket League Reel
-def make_rocket_league(session: SessionBase) -> Video:
+def make_rocket_league(session: SessionBase, user: User) -> Video:
     # TODO implement
     raise ValueError("This preset is not implemented")

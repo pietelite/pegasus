@@ -187,6 +187,13 @@ def delete_post(post_id: str) -> None:
         cursor.execute(query)
 
 
+# Updates a post
+def update_post(post_id: str, title: str, description: str) -> None:
+    with connection.cursor() as cursor:
+        query = "UPDATE Posts SET Title='{}', Description='{}' WHERE PostId='{}'".format(title, description, post_id)
+        cursor.execute(query)
+
+
 # Gets a post from database
 def get_post(post_id: str) -> Union[Post, None]:
     with connection.cursor() as cursor:

@@ -29,9 +29,16 @@ dev_machines = [machine.strip() for machine in dev_machines]
 
 DEBUG = socket.gethostname() in dev_machines
 
+if not DEBUG:
+    print("""
+DEBUG is False. If you want to be in development mode,
+make sure you add your device's hostname ({}) 
+to development_machines.txt
+    """.format(socket.gethostname()))
+
 # Manually enable/disable debug for development
 # DEBUG = False
-print('DEBUG = {}'.format(DEBUG))
+# print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
 APPEND_SLASH = False

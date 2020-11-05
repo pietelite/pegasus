@@ -37,7 +37,7 @@ for (but of document.getElementById('preset-container').getElementsByTagName('bu
         });
     }
     Object.assign(radio.style, {
-        //display: 'none'
+        display: 'none'
     });
     document.getElementById('preset-form').appendChild(radio);
 }
