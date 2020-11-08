@@ -1,6 +1,6 @@
 from typing import Union
 
-from .models import User, Video, Like, PostTag, Post
+from ..models import User, Video, Like, PostTag, Post
 from django.db import connection
 
 

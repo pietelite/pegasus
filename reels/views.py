@@ -3,13 +3,13 @@ from django.http import HttpResponse, HttpResponseRedirect
 
 from .models import User, Post
 from .session import upload_session_clips, session_login, session_context, session_logout
-from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like, delete_post, insert_post, update_post
+from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like, delete_post, insert_post, update_post
 from .compile import make
 from .models import User
 from .session import upload_session_clips, session_login, session_context, session_logout, upload_session_audio
-from .sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
+from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
 from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
-from .sql import insert_user, get_user
+from .azure.sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
@@ -145,6 +145,7 @@ def create(request) -> HttpResponse:
     # GET
     request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/create.html', context))
+
 
 # Handles requests to create or edit a post
 def post_creation(request) -> HttpResponse:

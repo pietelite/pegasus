@@ -20,9 +20,10 @@ class User:
 
 class Video:
 
-    def __init__(self, user_id: str, video_id=uuid_to_str(uuid1()), created=int(time.time())):
+    def __init__(self, user_id: str, video_id=uuid_to_str(uuid1()), preset='basic', created=int(time.time())):
         self.user_id = user_id
         self.video_id = video_id
+        self.preset = preset
         self.created = created
 
 
@@ -69,3 +70,11 @@ class SessionAudio:
         self.file_name = file_name
         self.session_key = session_key
         self.preset_config = preset_config
+
+
+# Class for a compiled video in the session
+class SessionVideo:
+
+    def __init__(self, file_name: str, session_key: str):
+        self.file_name = file_name
+        self.session_key = session_key

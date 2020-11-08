@@ -1,3 +1,5 @@
+from django.conf.urls.static import static
+from pegasus.settings import STATIC_URL, STATIC_ROOT, MEDIA_URL, MEDIA_ROOT
 from django.urls import path, re_path, include
 from . import views
 
@@ -11,3 +13,5 @@ urlpatterns = [
     re_path(r'social/?', views.social, name='social'),
     re_path(r'post_creation/?', views.post_creation, name='create post')
 ]
+urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
+urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)

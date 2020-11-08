@@ -1,5 +1,5 @@
 from re import fullmatch
-from .sql import get_user_by_credential
+from .azure.sql import get_user_by_credential
 from .config import USERNAME_LENGTH_MIN, USERNAME_LENGTH_MAX, USERNAME_REGEX, \
     PASSWORD_LENGTH_MIN, PASSWORD_LENGTH_MAX, PASSWORD_REGEX, \
     EMAIL_REGEX

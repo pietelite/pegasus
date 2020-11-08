@@ -14,7 +14,14 @@
         Welcome to Reels. Upload videos to stitch together, like clips from a video game or other short videos.
     </p>
 </div>
-<div id="upload-container" class="container step-container">
+{% if compiled_video %}
+<div id="compiled-video" class="container">
+    <div class="m-4">
+        <video src="{{ compiled_clip }}" controls></video>
+    </div>
+</div>
+{% endif %}
+<div id="upload-container" class="container">
     <h3 class="m-4">Step 1: Upload</h3>
     <div id="video-bar" class="simple-row">
         <div class="col-2">
@@ -33,12 +40,45 @@
                 <div class="col">
                     {% for uploaded_clip in uploaded_clips %}
                     <div class="uploaded">
-                        <video controls>
-                            <source src="{{ uploaded_clip }}" type="video/mp4">
-                                Your browser does not support the video tag.
+                        <video class="video-clip" src="{{ uploaded_clip }}" controls>
+                            <!-- <source src="{{ uploaded_clip }}" type="video/mp4">
+                                Your browser does not support the video tag. -->
                         </video>
                     </div>
                     {% endfor %}
+                    <!-- <script>
+// FUTURE PROJECT to use blobs instead of video files
+var xhr;
+var reader;
+var byteCharacters;
+var byteNumbers;
+var byteArray;
+var blob;
+var url;
+for (clip of document.getElementsByClassName('video-clip')) {
+    xhr = new XMLHttpRequest();
+    xhr.responseType = 'blob';
+    xhr.onload = function() {
+      reader = new FileReader();
+      reader.onloadend = function() {
+        byteCharacters = atob(reader.result.slice(reader.result.indexOf(',') + 1));
+        byteNumbers = new Array(byteCharacters.length);
+        for (var i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        byteArray = new Uint8Array(byteNumbers);
+        blob = new Blob([byteArray], {type: 'video/mp4'});
+        url = URL.createObjectURL(blob);
+        clip.src = url;
+      }
+      reader.readAsDataURL(xhr.response);
+    };
+    xhr.open('GET', clip.src);
+    console.log(clip);
+    console.log(clip.src);
+    xhr.send();
+}
+                    </script> -->
                 </div>
             </div>
         </div>
@@ -65,7 +105,7 @@
         </div>
     </div>
 </div>
-<div id="preset-container" class="container step-container">
+<div id="preset-container" class="container">
     <br>
     <h3 class="m-4">Step 2: Choose a Preset</h3>
     <form id="preset-form" action="/create" method="POST">
@@ -87,7 +127,7 @@
         </div>
     </div>
 </div>
-<div id="submit-container" class="container step-container">
+<div id="submit-container" class="container">
     <br>
     <h3 class="m-4">Step 3: Make your Reel!</h3>
     <button name="make_button" value="make" onclick="document.getElementById('preset-form').submit();">Go!</button>

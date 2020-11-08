@@ -15,7 +15,6 @@ import os
 import socket
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-from reels.sql import init_database
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,12 +31,12 @@ DEBUG = socket.gethostname() in dev_machines
 if not DEBUG:
     print("""
 DEBUG is False. If you want to be in development mode,
-make sure you add your device's hostname ({}) 
+make sure you add your device's hostname ({})
 to development_machines.txt
     """.format(socket.gethostname()))
 
 # Manually enable/disable debug for development
-# DEBUG = True
+# DEBUG = False
 # print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
@@ -54,12 +53,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reels'
+    # 'rest_framework',
+    'storages',
+    'reels',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -96,8 +97,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
         'NAME': 'pegasus',
-        'USER': 'pegasus',
-        'PASSWORD': str(os.environ['PEGASUS_SQL_PASSWORD']),
+        'USER': f"{os.environ['PEGASUS_SQL_USERNAME']}",
+        'PASSWORD': f"{os.environ['PEGASUS_SQL_PASSWORD']}",
         'HOST': 'tcp:pegasus-pietelite.database.windows.net',
         'PORT': '1433',
         'AUTOCOMMIT': True,     # Set this true for now so we don't have to do extra commit work
@@ -105,7 +106,6 @@ DATABASES = {
         'OPTIONS': {
             'driver': 'ODBC Driver 17 for SQL Server',
             'connection_timeout': 30,
-            # 'extra_params': 'server=pegasus-pietelite.database.windows.net\pegasus-pietelite'
         },
     },
     # 'sqlite': {
@@ -146,20 +146,16 @@ USE_L10N = True
 
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = []
-STATIC_URL = '/static/'
-
-# WhiteNoise comes with a storage backend which automatically takes
-# care of compressing your files and creating unique names for each
-# version so they can safely be cached forever.
-# http://whitenoise.evans.io/en/stable/django.html#make-sure-staticfiles-is-configured-correctly
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-
-# Media files (uploads)
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-MEDIA_URL = '/media/'
+if DEBUG:
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
+    STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+else:
+    STATICFILES_STORAGE = 'reels.azure.blob.AzureStaticStorage'
+    DEFAULT_FILE_STORAGE = 'reels.azure.blob.AzureMediaStorage'
+    STATIC_URL = 'https://pieteliteblob.blob.core.windows.net/pegasus-static/'
+    MEDIA_URL = 'https://pieteliteblob.blob.core.windows.net/pegasus-media/'
+    STATIC_ROOT = STATIC_URL
+    MEDIA_ROOT = MEDIA_URL
