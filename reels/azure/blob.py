@@ -1,7 +1,7 @@
 import os
 from azure.storage.blob import BlobServiceClient
 
-connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+connection_string = os.getenv("AZURE_BLOB_CONNECTION_STRING")
 
 container_name = "videos"
 
