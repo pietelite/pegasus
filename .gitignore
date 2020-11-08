@@ -5,9 +5,7 @@
 /venv/
 
 # python caches
-/pegasus/__pycache__/
-/reels/__pycache__/
-/reels/migrations/__pycache__/
+__pycache__/
 
 # deployment
 /staticfiles/
