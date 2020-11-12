@@ -1,6 +1,9 @@
+wheel
 django==3.0.10
 whitenoise==5.2.0
 moviepy==1.0.3
 django-mssql-backend==2.8.1
-django-storages[azure]
-# azure-storage-blob==12.5.0
+# django-storages[azure]
+celery==4.4.7
+flower==0.9.5
+azure-storage-blob==12.6.0

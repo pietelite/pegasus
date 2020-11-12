@@ -1,18 +1,30 @@
+import time
+
+from django.contrib.sessions.backends.base import SessionBase
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
 from .models import User, Post
 from .session import upload_session_clips, session_login, session_context, session_logout
-from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like, delete_post, insert_post, update_post
-from .compile import make
+from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, \
+    toggle_like, delete_post, insert_post, update_post, get_videos_by_user_id, get_admin_user, tear_down_database, \
+    init_database, delete_video
+from .tasks import make
 from .models import User
 from .session import upload_session_clips, session_login, session_context, session_logout, upload_session_audio
-from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, toggle_like
+from .azure.sql import insert_user, get_user_by_credential, get_all_post_ids, get_post, get_video, get_user, has_liked, \
+    toggle_like
 from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
 from .azure.sql import insert_user, get_user
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
+
+
+def pegasus_context(session: SessionBase) -> dict:
+    context = {}
+    context = {**context, **session_context(session)}
+    return context;
 
 
 # Redirects to create page
@@ -25,7 +37,7 @@ def login(request) -> HttpResponse:
     # Might be useful:
     # https://docs.djangoproject.com/en/3.1/topics/http/sessions/#examples
 
-    context = session_context(request.session)
+    context = pegasus_context(request.session)
 
     if request.method == 'POST':
         if request.session.test_cookie_worked():
@@ -52,7 +64,7 @@ def logout(request) -> HttpResponse:
     # TODO make more robust
 
     session_logout(request.session)
-    context = session_context(request.session)
+    context = pegasus_context(request.session)
 
     # GET
     return HttpResponse(render(request, 'reels/logout.html', context))
@@ -68,7 +80,7 @@ def register(request) -> HttpResponse:
     #   if register is invalid, send rendered HttpResponse with failure
     #   if register is valid, send user to social
 
-    context = session_context(request.session)
+    context = pegasus_context(request.session)
 
     if request.method == 'POST':
         # Add errors
@@ -100,7 +112,7 @@ def forgot(request) -> HttpResponse:
     #   if information is invalid, send rendered HttpResponse with failure
     #   if information is success, send rendered HttpResponse to prompt checking email
 
-    context = session_context(request.session)
+    context = pegasus_context(request.session)
 
     if request.method == 'POST':
         context['username_errors'] = existing_user(request.POST['username'])
@@ -121,8 +133,7 @@ def create(request) -> HttpResponse:
     #   if uploading, put uploaded data into memory (is it done through POST?)
     #   if done, stitch video (call algorithms), then return video
 
-    context = session_context(request.session)
-
+    context = pegasus_context(request.session)
     if request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
@@ -133,14 +144,26 @@ def create(request) -> HttpResponse:
                 upload_session_clips(request.session.session_key, video_files)
                 return HttpResponseRedirect('/create')
             elif 'preset' in request.POST:
-                make(request.session, request.POST['preset'])
-                return HttpResponse(render(request, 'reels/compile.html', context))
+                if get_session_clips(request.session.session_key):
+                    # Get user info
+                    if session_is_logged_in(request.session):
+                        user = session_get_user(request.session)
+                    else:
+                        user = get_admin_user()
+                    make.delay(request.session.session_key, user.user_id, request.POST['preset'])
+                    return HttpResponse(render(request, 'reels/compile.html', context))
+                else:
+                    # TODO do something to say that videos must be uploaded
+                    print('You must upload videos...')
+                    return HttpResponseRedirect('/create')
             else:
                 # TODO do something to say that a preset choice is required
+                print('You must upload audio...')
                 return HttpResponseRedirect('/create')
         else:
             # TODO print error about enabling cookies
-            return HttpResponse(render(request, 'reels/create.html', context))
+            print('You must enable cookies...')
+            return HttpResponseRedirect('/create')
 
     # GET
     request.session.set_test_cookie()
@@ -152,8 +175,7 @@ def post_creation(request) -> HttpResponse:
     # TODO implement
     # if GET request, send rendered HttpResponse template
     # if POST request, insert/update post, then redirect to /social
-
-
+    context = pegasus_context(request.session)
 
     if request.method == 'POST':
         if bool(request.POST.get('delete_post')):
@@ -171,12 +193,11 @@ def post_creation(request) -> HttpResponse:
 
         return HttpResponseRedirect('/social')
 
-    context = session_context(request.session)
-
     if request.GET.get('post_id', False):
         context['post'] = get_post(request.GET['post_id'])
 
     return HttpResponse(render(request, 'reels/post_creation.html', context))
+
 
 # Handles requests relating to social.html
 def social(request) -> HttpResponse:
@@ -189,7 +210,7 @@ def social(request) -> HttpResponse:
     # TODO add something to get relevant context by page
     # https://django.cowhite.com/blog/working-with-url-get-post-parameters-in-django/
 
-    context = session_context(request.session)
+    context = pegasus_context(request.session)
 
     if session_is_logged_in(request.session):
         context["user_id"] = session_get_user(request.session).user_id
@@ -211,3 +232,38 @@ def social(request) -> HttpResponse:
         context["posts"] = posts
 
     return HttpResponse(render(request, 'reels/social.html', context))
+
+
+# Handles requests for getting the My Videos page
+def my_videos(request) -> HttpResponse:
+    context = pegasus_context(request.session)
+
+    if session_is_logged_in(request.session):
+        videos = get_videos_by_user_id(session_get_user(request.session).user_id)
+        context['user_videos'] = []
+        for video in videos:
+            context['user_videos'].append(
+                {
+                    'formatted_time': time.ctime(video.created),
+                    'video_id': video.video_id,
+                })
+        if videos:
+            context['most_recent_video'] = time.ctime((max(videos, key=lambda v: v.created)).created)
+        return HttpResponse(render(request, 'reels/my_videos.html', context))
+    else:
+        return HttpResponse(render(request, 'reels/login.html', context))
+
+
+# Handles requests for viewing a single video
+def video(request) -> HttpResponse:
+    context = pegasus_context(request.session)
+    if request.method == 'POST':
+        if 'delete' in request.POST:
+            # Delete video
+            delete_video(request.POST['delete'])
+        return HttpResponseRedirect('/myvideos')
+    if 'id' in request.GET:
+        context['video_id'] = request.GET['id']
+        return HttpResponse(render(request, 'reels/video.html', context))
+    else:
+        return HttpResponse(render(request, 'reels/invalid.html', context))

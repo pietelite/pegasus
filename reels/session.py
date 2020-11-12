@@ -1,5 +1,5 @@
 import re
-from typing import Union
+from typing import Union, List
 
 from django.contrib.sessions.backends.base import SessionBase
 from django.core.files import File
@@ -52,7 +52,7 @@ def session_context(session: SessionBase) -> dict:
 # Uploads a clip to media folder
 # MEDIA format: /media/reels-clip-{session_key}-{epoch_time_in_seconds}-{index}.mp4
 # This assumes mp4 format
-def upload_session_clips(session_key: str, files: list) -> list:
+def upload_session_clips(session_key: str, files: list) -> List[SessionClip]:
     clips = []
     time_sec = int(time.time())
     for i in range(len(files)):
@@ -63,7 +63,7 @@ def upload_session_clips(session_key: str, files: list) -> list:
 
 
 # Gets a list of SessionClips associated with a session
-def get_session_clips(session_key: str) -> list:
+def get_session_clips(session_key: str) -> List[SessionClip]:
     # TODO use cached dictionary for this instead for efficiency
     regex = r'^reels-clip-.{32}-[0-9]{10}-[0-9]{0,5}\.[a-zA-Z0-9]{0,10}$'
     return [SessionClip(f, session_key, {}) for f in get_storage_class()().listdir('')[1]

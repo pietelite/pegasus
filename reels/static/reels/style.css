@@ -48,6 +48,48 @@ body {
     font-size: 1.5em;
 }
 
+#navbar .sidebar-button {
+}
+
+#sidebar {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #104060;
+  width: 250px;
+  height: 100vh;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 9999;
+}
+
+#sidebar ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#sidebar li {
+    float: top;
+}
+
+#sidebar li a {
+    display: block;
+    text-align: left;
+    padding: 14px 24px;
+    text-decoration: none;
+}
+
+#sidebar li a:hover {
+    background-color: #101010;
+}
+
+#sidebar li span {
+    color: white;
+    font-family: 'Comfortaa', cursive;
+    font-size: 1.5em;
+}
+
 /* Body */
 
 body {

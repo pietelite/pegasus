@@ -36,8 +36,8 @@ to development_machines.txt
     """.format(socket.gethostname()))
 
 # Manually enable/disable debug for development
-# DEBUG = False
-# print('DEBUG = {}'.format(DEBUG))
+DEBUG = False
+print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
 APPEND_SLASH = False
@@ -53,14 +53,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'rest_framework',
     'storages',
     'reels',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -97,8 +96,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'sql_server.pyodbc',
         'NAME': 'pegasus',
-        'USER': f"{os.environ['PEGASUS_SQL_USERNAME']}",
-        'PASSWORD': f"{os.environ['PEGASUS_SQL_PASSWORD']}",
+        'USER': os.environ['PEGASUS_SQL_USERNAME'],
+        'PASSWORD': os.environ['PEGASUS_SQL_PASSWORD'],
         'HOST': 'tcp:pegasus-pietelite.database.windows.net',
         'PORT': '1433',
         'AUTOCOMMIT': True,     # Set this true for now so we don't have to do extra commit work
@@ -113,6 +112,7 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -146,16 +146,37 @@ USE_L10N = True
 
 USE_TZ = True
 
+BLOB_STORAGE_URL = 'https://pieteliteblob.blob.core.windows.net/'
 
-if DEBUG:
-    STATIC_URL = '/static/'
-    MEDIA_URL = '/media/'
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
-else:
-    STATICFILES_STORAGE = 'reels.azure.blob.AzureStaticStorage'
-    DEFAULT_FILE_STORAGE = 'reels.azure.blob.AzureMediaStorage'
-    STATIC_URL = 'https://pieteliteblob.blob.core.windows.net/pegasus-static/'
-    MEDIA_URL = 'https://pieteliteblob.blob.core.windows.net/pegasus-media/'
-    STATIC_ROOT = STATIC_URL
-    MEDIA_ROOT = MEDIA_URL
+# if DEBUG:
+#     STATIC_URL = '/static/'
+#     STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+# else:
+#     STATICFILES_STORAGE = 'reels.azure.blob.AzureStaticStorage'
+#     DEFAULT_FILE_STORAGE = 'reels.azure.blob.AzureMediaStorage'
+#     STATIC_URL = f'{BLOB_STORAGE_URL}pegasus-static/'
+#     MEDIA_URL = '/media/'#f'{BLOB_STORAGE_URL}pegasus-media/'
+#     STATIC_ROOT = STATIC_URL
+
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+if not os.path.exists(STATIC_ROOT):
+    os.mkdir(STATIC_ROOT)
+if not os.path.exists(MEDIA_ROOT):
+    os.mkdir(MEDIA_ROOT)
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# Celery Configuration Options
+CELERY_TIMEZONE = "America/New_York"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # Is this 30 minutes?
+BROKER_URL = 'amqp://pietelite:math3matics@localhost:5672/pegasus_vhost'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

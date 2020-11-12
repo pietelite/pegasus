@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from ..models import User, Video, Like, PostTag, Post
 from django.db import connection
@@ -141,7 +141,7 @@ def get_user_by_credential(username_or_email: str) -> Union[User, None]:
 # Inserts video information to relational database. This does not do anything with the actual video.
 def insert_video(video: Video) -> None:
     with connection.cursor() as cursor:
-        query = f"INSERT INTO Videos VALUES ('{video.video_id}', '{video.user_id}', '{video.created}')"
+        query = f"INSERT INTO Videos VALUES ('{video.video_id}', '{video.user_id}', '{video.preset}', '{video.created}')"
         cursor.execute(query)
 
 
@@ -161,6 +161,14 @@ def get_video(video_id: str) -> Union[Video, None]:
     if row:
         return Video(row[1], row[0], row[2], row[3])
     return None
+
+
+def get_videos_by_user_id(user_id: str) -> List[Video]:
+    with connection.cursor() as cursor:
+        query = f"SELECT * FROM Videos WHERE UserId = '{user_id}'"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    return [Video(row[1], row[0], row[2], row[3]) for row in rows]
 
 
 # === POSTS, TAGS, AND LIKES ===
@@ -319,11 +327,11 @@ Type "yes" to continue, or something else to exit.
 DROP TRIGGER UpdateSinglePostLikesCountTriggerDelete;
 DROP TRIGGER UpdateSinglePostLikesCountTrigger;
 DROP PROCEDURE UpdateSinglePostLikesCount;
-DROP TABLES Tags;
-DROP TABLES Likes;
-DROP TABLES Posts;
-DROP TABLES Videos;
-DROP TABLES Users;
+DROP TABLE Tags;
+DROP TABLE Likes;
+DROP TABLE Posts;
+DROP TABLE Videos;
+DROP TABLE Users;
         """)
             print('Database torn down')
 

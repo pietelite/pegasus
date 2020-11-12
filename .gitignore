@@ -3,6 +3,7 @@
 
 # local development
 /venv/
+/venv_linux/
 
 # python caches
 __pycache__/
@@ -13,6 +14,11 @@ __pycache__/
 # secret files
 init_secret.sh
 init_secret.bat
+init_env.sh
+init_env.bat
 
 # media files
 /media/
+
+# Celery
+celery_db.*

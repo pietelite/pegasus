@@ -1,0 +1,15 @@
+{% extends "reels/base.html" %}
+
+{% block title %}My Videos{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <h1>{{ video_id }}</h1>
+    </div>
+    <form action="/video?id={{ video_id }}" method="POST">
+        {% csrf_token %}
+        <button style="border-radius=5px; background-color=red; padding=10px;" name="delete" value="{{ video_id }}">Delete</button>
+    </form>
+</div>
+{% endblock %}
