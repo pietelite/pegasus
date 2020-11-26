@@ -1,5 +1,5 @@
 from re import fullmatch
-from .azure.sql import get_user_by_credential
+from .sql.sql import get_sql_handler
 from .config import USERNAME_LENGTH_MIN, USERNAME_LENGTH_MAX, USERNAME_REGEX, \
     PASSWORD_LENGTH_MIN, PASSWORD_LENGTH_MAX, PASSWORD_REGEX, \
     EMAIL_REGEX
@@ -46,8 +46,8 @@ def valid_password(password) -> list:
 # check if credentials are correct, returns list of all errors
 def correct_credentials(login_id, password) -> list:
     errors = existing_user(login_id)
-    user = get_user_by_credential(login_id)
-    if user and not password == get_user_by_credential(login_id).password:
+    user = get_sql_handler().get_user_by_credential(login_id)
+    if user and not password == get_sql_handler().get_user_by_credential(login_id).password:
         errors.append('That\'s not the right password')
     return errors
 
@@ -55,6 +55,6 @@ def correct_credentials(login_id, password) -> list:
 # check if a username or email exists
 def existing_user(credential) -> list:
     errors = []
-    if not get_user_by_credential(credential):
+    if not get_sql_handler().get_user_by_credential(credential):
         errors.append('It appears that you, {}, don\'t exist yet'.format(credential))
     return errors

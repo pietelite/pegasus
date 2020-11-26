@@ -11,7 +11,7 @@
 <div class="container-fluid">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-9 col-md-6 col-lg-4" style="margin-top: 20vh;">
-            <form action="{{ request.path }}" method="POST" class="animate">
+            <form action="{{ request.path }}" method="POST">
                 {% csrf_token %}
                 <div class="row justify-content-center">
                     <h2 style="color: #E0E0E0" class="mb-4">{% block header %}Log In{% endblock %}</h2>
@@ -27,8 +27,9 @@
                 {% endfor %}
 
                 {% endblock %}
+                <br><br>
                 <div class="row justify-content-center">
-                    <input id="submit" name="submit" type="submit" value="Submit">
+                    <input class="reels-button" id="submit" name="submit" type="submit" value="Submit">
                 </div>
 
                 {% for error in submit_errors %}

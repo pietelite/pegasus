@@ -1,0 +1,23 @@
+{% extends "reels/base.html" %}
+{% load emoji_tags %}
+
+{% block title %}
+{% if message_title %}
+{{ message_title }}
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container title">
+    {% if message_header %}
+    <div class="row justify-content-center">
+        <h1>{{ message_header }}</h1>
+    </div>
+    {% endif %}
+    {% if message_content %}
+    <div class="row justify-content-center">
+        <span>{{ message_content|emoji_replace }} &#65;</span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

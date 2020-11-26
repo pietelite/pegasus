@@ -14,11 +14,18 @@ __pycache__/
 # secret files
 init_secret.sh
 init_secret.bat
-init_env.sh
-init_env.bat
+env.sh
+env.bat
+env.env
 
 # media files
 /media/
+*.mp4
+*.mp3
+*.m4a
+
+# temp files
+/temp/
 
 # Celery
 celery_db.*

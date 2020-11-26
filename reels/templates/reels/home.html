@@ -1,0 +1,33 @@
+{% extends "reels/base.html" %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'reels/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <img class="hero-image" src="{% static 'reels/headergif.gif' %}" alt="" style="visibility: visible;">
+    <script>
+        var hero_image = document.getElementsByClassName('hero-image')[0];
+        hero_image.onload = () => {
+            hero_image.style.visibility = "visible";
+        };
+    </script>
+</div>
+<div id="title">
+    <div class="welcome animate">
+        <img src="{% static 'reels/reels-logo-white.png' %}"
+             class="logo"
+             alt="logo"
+             height="150px"
+             style="border: 7.5px solid white; border-radius: 20px">
+        <br>
+        <p>Welcome! &#128516 Here, you can upload your gameplay and get a montage of your best moments</p>
+        <br>
+        <button class="reels-button"><a href="/create">Create a Reel</a></button>
+    </div>
+</div>
+{% endblock %}

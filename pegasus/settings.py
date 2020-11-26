@@ -13,30 +13,35 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 from pathlib import Path
 import os
 import socket
+from django.core.management.utils import get_random_secret_key
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ['DJANGO_PEGASUS_SECRET_KEY']
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())
 
-# Get all machines marked for development and turn on DEBUG for them
-with open('./development_machines.txt', 'r') as dev_machine_file:
-    dev_machines = dev_machine_file.read().split('\n')
-
-dev_machines = [machine.strip() for machine in dev_machines]
-
-DEBUG = socket.gethostname() in dev_machines
-
-if not DEBUG:
-    print("""
-DEBUG is False. If you want to be in development mode,
-make sure you add your device's hostname ({})
-to development_machines.txt
-    """.format(socket.gethostname()))
+# # Get all machines marked for development and turn on DEBUG for them
+# with open('./development_machines.txt', 'r') as dev_machine_file:
+#     dev_machines = dev_machine_file.read().split('\n')
+#
+# dev_machines = [machine.strip() for machine in dev_machines]
+#
+# DEBUG = socket.gethostname() in dev_machines
+#
+# if not DEBUG:
+#     print("""
+# DEBUG is False. If you want to be in development mode,
+# make sure you add your device's hostname ({})
+# to development_machines.txt
+#     """.format(socket.gethostname()))
+if os.getenv('PEGASUS_DEBUG', default='TRUE').upper() == 'TRUE':
+    DEBUG = True
+else:
+    DEBUG = False
 
 # Manually enable/disable debug for development
-DEBUG = False
+# DEBUG = False
 print('DEBUG = {}'.format(DEBUG))
 
 # To keep POST data, we cannot append a trailing slash to post URLs
@@ -53,7 +58,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'storages',
+    # 'storages',
+    'emoji',
     'reels',
 ]
 
@@ -91,28 +97,35 @@ WSGI_APPLICATION = 'pegasus.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
+
 DATABASES = {
-
     'default': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': 'pegasus',
-        'USER': os.environ['PEGASUS_SQL_USERNAME'],
-        'PASSWORD': os.environ['PEGASUS_SQL_PASSWORD'],
-        'HOST': 'tcp:pegasus-pietelite.database.windows.net',
-        'PORT': '1433',
-        'AUTOCOMMIT': True,     # Set this true for now so we don't have to do extra commit work
-
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-            'connection_timeout': 30,
-        },
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost' if DEBUG else 'db',
+        'PORT': 5432,
     },
-    # 'sqlite': {
+    # 'mssql': {
+    #     'ENGINE': 'sql_server.pyodbc',
+    #     'NAME': 'pegasus',
+    #     'USER': os.environ['PEGASUS_SQL_USERNAME'],
+    #     'PASSWORD': os.environ['PEGASUS_SQL_PASSWORD'],
+    #     'HOST': 'tcp:pegasus-pietelite.database.windows.net',
+    #     'PORT': 1433,
+    #     'AUTOCOMMIT': True,  # Set this true for now so we don't have to do extra commit work
+    #
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 17 for SQL Server',
+    #         'connection_timeout': 30,
+    #     },
+    # },
+    # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -176,7 +189,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 CELERY_TIMEZONE = "America/New_York"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # Is this 30 minutes?
-BROKER_URL = 'amqp://pietelite:math3matics@localhost:5672/pegasus_vhost'
+BROKER_URL = f'amqp://pietelite:math3matics@{"localhost" if DEBUG else "broker"}:5672/pegasus_vhost'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

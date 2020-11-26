@@ -7,8 +7,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
 
     <title>Reels | {% block title %}Default Title{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@500&display=swap" rel="stylesheet">
-
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -23,9 +23,13 @@
 
 <div id="navbar">
     <ul>
-        <li><a href="/create" id="logo"><img src="" alt="logo" width="100px" height="100px"></a></li>
+        <li><a href="/" id="logo"><img src="{% static 'reels/reels-logo-white.png' %}"
+                                             alt="logo"
+                                             height="36px"
+                                             style="border: 1.5px solid white; border-radius: 4px"></a></li>
         <li><a href="/create"><span>Create</span></a></li>
         <li><a href="/social"><span>Social</span></a></li>
+        <li><a href="/improve"><span>Help Us Improve</span></a></li>
         <script>
             showSidebar = () => {
                 navbar = document.getElementById("navbar");
@@ -57,11 +61,17 @@
 <div id="sidebar" onmouseover="showSidebar()" onmouseout="hideSidebar()">
     <ul>
         <li><a href="/myvideos"><span>My Videos</span></a></li>
+        <li><a href="/profile"><span>My Profile</span></a></li>
         <li><a href="/logout"><span>Logout</span></a></li>
     </ul>
 </div>
 
 <div id="content">
+    {% if enable_cookies %}
+    <script>
+        alert("You must enable cookies in your browser for this site to work properly.")
+    </script>
+    {% endif %}
     {% block content %}Content{% endblock %}
 </div>
 

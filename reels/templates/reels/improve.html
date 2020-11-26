@@ -1,0 +1,40 @@
+{% extends "reels/base.html" %}
+{% load static %}
+
+{% block title %}Improve{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'reels/upload.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container title">
+    <h1>We need your help!</h1>
+    <p>This project is just getting started. To help us move along, we need your help!</p>
+</div>
+<div class="container">
+    <h1>Upload Content</h1>
+    <p>To make our algorithms better, we need your recorded gameplay!</p>
+    <p>Upload your clips here. Please know that by uploading here, you give us rights to your content.</p>
+    <div>
+        <form action="/improve" class="upload-form" id="upload_video_form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="video_file_button" name="video_file" accept="video/mp4" multiple>
+        </form>
+<!--        <button class="reels-button">-->
+<!--                Upload Videos-->
+<!--        </button>-->
+    </div>
+</div>
+<div class="container">
+    <h1>Feedback</h1>
+    <p>
+        You will soon be able to send us feedback here. For now, hold on to your thoughts and we'll
+        ask for your thoughts soon!
+    </p>
+</div>
+{% endblock %}
+
+{% block tail %}
+<script type="module" src="{% static 'reels/upload.js' %}"></script>
+{% endblock %}

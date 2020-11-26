@@ -1,0 +1,22 @@
+{% extends "reels/base.html" %}
+{% load static %}
+
+{% block title %}Profile{% endblock %}
+
+{% block head %}{% endblock %}
+
+{% block content %}
+<div class="container title">
+    <h1>{{ user_data.user_name }}'s Profile</h1>
+</div>
+<div class="container">
+    <form action="/profile" class="" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input value="Delete Profile" type="submit" class="reels-button" name="delete_profile">
+    </form>
+</div>
+{% endblock %}
+
+{% block tail %}
+<script type="module" src="{% static 'reels/upload.js' %}"></script>
+{% endblock %}

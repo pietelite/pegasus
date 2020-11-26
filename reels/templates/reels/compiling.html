@@ -1,0 +1,21 @@
+{% extends "reels/base.html" %}
+
+{% block title %}Compiling{% endblock %}
+
+{% block content %}
+<br>
+<div class="container title">
+    <div style="text-align: center;">
+        <h1>&#128293; Your Reel is compiling &#128293;</h1>
+    </div>
+</div>
+<div class="container">
+    {% if user_data %}
+    <p>You will be able to view your video in your <a href="/myvideos">My Videos</a> page</p>
+    {% else %}
+    <p>When we're done, you can view your Reel on the <a href="/create">Create</a> page. </p>
+    <p>You're not logged in, so we won't hold on to your video for too long! </p>
+    <p>Next time, make sure to <a href="/register">Register</a> and <a href="/login">Log In</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

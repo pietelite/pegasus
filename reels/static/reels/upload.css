@@ -1,0 +1,28 @@
+#working-element {
+    position: fixed;
+    display: grid;
+    place-content: center;
+    overflow: hidden;
+    font: 500 1em/1.4 -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    color: #2E2C33;
+    background: #FBFBFD;
+    top: 0;
+    left: 0;
+    opacity: 0.7;
+    height: 100vh;
+    width: 100vw;
+}
+
+#working-element > * {
+    display: flex;
+}
+
+.upload-form {
+    display: none;
+}
+
+.space {
+    width: .25em;
+}

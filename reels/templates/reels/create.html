@@ -5,135 +5,90 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'reels/create.css' %}">
+<link rel="stylesheet" href="{% static 'reels/upload.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container step-container">
-    <h1 class="m-4">Create a Reel</h1>
-    <p class="m-4">
-        Welcome to Reels. Upload videos to stitch together, like clips from a video game or other short videos.
-    </p>
-</div>
-{% if compiled_video %}
-<div id="compiled-video" class="container">
-    <div class="m-4">
-        <video src="{{ compiled_clip }}" controls></video>
-    </div>
+{% if compiled_videos %}
+<div class="container title">
+    <h1>Your Reels</h1>
+    {% for compiled_video in compiled_videos %}
+    <p>{{ compiled_video.video_id }}</p>
+    {% endfor %}
 </div>
 {% endif %}
-<div id="upload-container" class="container">
-    <h3 class="m-4">Step 1: Upload</h3>
-    <div id="video-bar" class="simple-row">
-        <div class="col-2">
-            <div id="upload-video" class="simple-row">
-                <form action="/create" class="upload" id="upload_video_form" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="file" id="video_file_button" name="video_file" accept="video/mp4" multiple>
-                </form>
-                <button onclick="uploadVideo();">
-                        Upload Video
-                </button>
-            </div>
-        </div>
-        <div class="col-10">
-            <div id="uploads" style="display: flex; flex-wrap: wrap; justify-content: center">
-                <div class="col">
-                    {% for uploaded_clip in uploaded_clips %}
-                    <div class="uploaded">
-                        <video class="video-clip" src="{{ uploaded_clip }}" controls>
-                            <!-- <source src="{{ uploaded_clip }}" type="video/mp4">
-                                Your browser does not support the video tag. -->
-                        </video>
-                    </div>
-                    {% endfor %}
-                    <!-- <script>
-// FUTURE PROJECT to use blobs instead of video files
-var xhr;
-var reader;
-var byteCharacters;
-var byteNumbers;
-var byteArray;
-var blob;
-var url;
-for (clip of document.getElementsByClassName('video-clip')) {
-    xhr = new XMLHttpRequest();
-    xhr.responseType = 'blob';
-    xhr.onload = function() {
-      reader = new FileReader();
-      reader.onloadend = function() {
-        byteCharacters = atob(reader.result.slice(reader.result.indexOf(',') + 1));
-        byteNumbers = new Array(byteCharacters.length);
-        for (var i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        byteArray = new Uint8Array(byteNumbers);
-        blob = new Blob([byteArray], {type: 'video/mp4'});
-        url = URL.createObjectURL(blob);
-        clip.src = url;
-      }
-      reader.readAsDataURL(xhr.response);
-    };
-    xhr.open('GET', clip.src);
-    console.log(clip);
-    console.log(clip.src);
-    xhr.send();
-}
-                    </script> -->
-                </div>
-            </div>
-        </div>
+<div class="container title">
+    <h1>Create a Reel</h1>
+</div>
+{% if post_errors %}
+<div class="container">
+    {% for error in post_errors %}
+    <div class="error-message">
+        {{ error }}
     </div>
-    <h4 class="m-4">(Optional) Upload Music</h4>
-    <div id="audio-bar" class="simple-row">
-        <div class="col-2">
-            <div id="upload-audio" class="simple-row">
-                <form action="/create" class="upload" id="upload_audio_form" method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="file" id="audio_file_button" name="audio_file" accept="audio/mp3" multiple>
-                </form>
-                <button onclick="uploadAudio();">
-                        Upload audio
-                </button>
-            </div>
-        </div>
-        <div class="col-10 m-auto">
-            {% if uploaded_audio %}
-            {{ uploaded_audio }}
-            {% else %}
-            No audio uploaded
-            {% endif %}
-        </div>
+    {% endfor %}
+</div>
+{% endif %}
+<div class="container">
+    <h3>Uploaded Clips</h3>
+    <div class="uploaded">
+        {% if not session_clips %}
+        <span>You haven't uploaded any clips yet &#128542;</span>
+        {% endif %}
+
+        {% for session_clip in session_clips %}
+        <span>{{ session_clip.file_name }}</span>
+        <br>
+        {% endfor %}
+    </div>
+    <div id="upload-video">
+        <form action="/create" class="upload-form" id="upload_video_form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="video_file_button" name="video_file" accept="video/mp4" multiple>
+        </form>
+<!--        <button class="reels-button" onclick="uploadToForm('video_file_button', 'upload_video_form');">-->
+<!--                Upload Videos-->
+<!--        </button>-->
     </div>
 </div>
-<div id="preset-container" class="container">
-    <br>
-    <h3 class="m-4">Step 2: Choose a Preset</h3>
-    <form id="preset-form" action="/create" method="POST">
+<div class="container">
+    <h3>Upload Music (Optional)</h3>
+    <div class="uploaded">
+        {% if session_audio %}
+        <span>{{ session_audio.file_name }}</span>
+        {% else %}
+        <span>You haven't uploaded your cool song &#128557;</span>
+        {% endif %}
+    </div>
+    <div id="upload-audio">
+        <form action="/create" class="upload-form" id="upload_audio_form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="audio_file_button" name="audio_file" accept="audio/mp3" multiple>
+        </form>
+<!--        <button class="reels-button" onclick="uploadToForm('audio_file_button', 'upload_audio_form');">-->
+<!--                Upload Audio-->
+<!--        </button>-->
+    </div>
+</div>
+<div id="config-container" class="container">
+    <h3>Configuration</h3>
+    <span>You can't configure anything yet &#128556, but stay tuned for updates!</span>
+    <form id="config-form" action="/create" method="POST">
         {% csrf_token %}
-        <!-- THESE RADIO BUTTONS ARE CREATED IN JAVASCRIPT FROM BUTTONS IN preset-grid, see create.js -->
+        <!-- All elements here will be automatically generated in config-panel with proper UI -->
     </form>
-    <div id="preset-grid" style="width: 50%">
-        <div class="row">
-            <!-- Eventually going to make these dynamically loaded with django context or javascript -->
-            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-            <button id="basic_button" name="basic_button" value="basic" onClick="presetClick('basic');">Basic</button>
-            </div>
-            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-            <button id="cod_sniper_button" name="cod_sniper_button" value="cod_sniper" onClick="presetClick('cod_sniper')">Call of Duty (Sniper)</button>
-            </div>
-            <div class="col-12 col-sm-12 col-md-6 col-lg-4">
-            <button id="rocket_league_button" name="rocket_league_button" value="rocket_league" onClick="presetClick('rocket_league');">Rocket League</button>
-            </div>
-        </div>
+    <div id="config-panel">
+        <!-- This is where config elements will be generated dynamically with JS -->
     </div>
 </div>
 <div id="submit-container" class="container">
-    <br>
-    <h3 class="m-4">Step 3: Make your Reel!</h3>
-    <button name="make_button" value="make" onclick="document.getElementById('preset-form').submit();">Go!</button>
+    <button class="reels-button" name="make_button"
+            value="create"
+            style="display: block; margin-left: auto; margin-right: auto;"
+            onclick="document.getElementById('config-form').submit();">Create!</button>
 </div>
 {% endblock %}
 
 {% block tail %}
-<script src="{% static 'reels/create.js' %}"></script>
+<script type="module" src="{% static 'reels/upload.js' %}"></script>
 {% endblock %}

@@ -1,14 +1,20 @@
+from os.path import join, exists
+
 from django.db import models
 import time
 from uuid import UUID, uuid4
 
-from reels.util import uuid_to_str
+from pegasus.settings import MEDIA_ROOT
+from reels.util import uuid_to_str, get_file_type
+from moviepy.editor import VideoFileClip, AudioFileClip
 
 
 class User:
 
-    def __init__(self, user_name: str, password: str, email: str, user_id=uuid_to_str(uuid4()),
+    def __init__(self, user_name: str, password: str, email: str, user_id: str = None,
                  created=int(time.time()), last_online=int(time.time()), verified=False):
+        if user_id is None:
+            user_id = uuid_to_str(uuid4())
         self.user_name = user_name
         self.password = password
         self.email = email
@@ -20,11 +26,41 @@ class User:
 
 class Video:
 
-    def __init__(self, user_id: str, video_id=uuid_to_str(uuid4()), preset='basic', created=int(time.time())):
+    def __init__(self, user_id: str, file_type: str,
+                 session_key: str, video_id: str = None,
+                 config: dict = None, created=int(time.time())):
+        if config is None:
+            config = {}
+        if video_id is None:
+            video_id = uuid_to_str(uuid4())
         self.user_id = user_id
+        self.file_type = file_type
+        self.session_key = session_key
         self.video_id = video_id
-        self.preset = preset
+        self.config = config
         self.created = created
+
+    def duration(self):
+        if exists(self.temp_file_path()):
+            return VideoFileClip(self.temp_file_name())
+        else:
+            raise FileExistsError(f'The Video {self.video_id} is not saved locally')
+
+    def temp_file_name(self):
+        return f'{self.video_id}.{self.file_type}'
+
+    def temp_file_path(self):
+        return join(MEDIA_ROOT, self.temp_file_name())
+
+    def contextualize(self):
+        return {
+            'user_id': self.user_id,
+            'file_type': self.file_type,
+            'session_key': self.session_key,
+            'video_id': self.video_id,
+            'config': self.config,
+            'created': time.ctime(self.created)
+        }
 
 
 class Post:
@@ -57,24 +93,50 @@ class Like:
 # Class for a clip uploaded by a user
 class SessionClip:
 
-    def __init__(self, file_name: str, session_key: str, preset_config: dict):
+    def __init__(self, file_name: str, session_key: str, clip_id=None, preset_config=None):
+        if preset_config is None:
+            preset_config = {}
+        if clip_id is None:
+            clip_id = uuid_to_str(uuid4())
         self.file_name = file_name
         self.session_key = session_key
+        self.clip_id = clip_id
         self.preset_config = preset_config
+
+    def duration(self):
+        if exists(self.temp_file_path()):
+            return VideoFileClip(self.temp_file_name())
+        else:
+            raise FileExistsError(f'The SessionClip {self.clip_id} is not saved locally')
+
+    def temp_file_name(self):
+        return f'{self.clip_id}.{get_file_type(self.file_name)}'
+
+    def temp_file_path(self):
+        return join(MEDIA_ROOT, self.temp_file_name())
 
 
 # Class for an audio file uploaded by a user
 class SessionAudio:
 
-    def __init__(self, file_name: str, session_key: str, preset_config: dict):
+    def __init__(self, file_name: str, session_key: str, audio_id=None, preset_config=None):
+        if preset_config is None:
+            preset_config = {}
+        if audio_id is None:
+            audio_id = uuid_to_str(uuid4())
         self.file_name = file_name
         self.session_key = session_key
+        self.audio_id = audio_id
         self.preset_config = preset_config
 
+    def duration(self):
+        if exists(self.temp_file_path()):
+            return AudioFileClip(self.temp_file_name())
+        else:
+            raise FileExistsError(f'The SessionAudio {self.audio_id} is not saved locally')
 
-# Class for a compiled video in the session
-class SessionVideo:
+    def temp_file_name(self):
+        return f'{self.audio_id}.{get_file_type(self.file_name)}'
 
-    def __init__(self, file_name: str, session_key: str):
-        self.file_name = file_name
-        self.session_key = session_key
+    def temp_file_path(self):
+        return join(MEDIA_ROOT, self.temp_file_name())
