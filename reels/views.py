@@ -209,7 +209,6 @@ def create(request) -> HttpResponse:
                 video_files = []
                 unsupported_file = False
                 for file in request.FILES.getlist('video_file'):
-                    print(file.name)
                     if is_file_supported(file.name, SUPPORTED_VIDEO_TYPES):
                         video_files.append(file)
                     else:

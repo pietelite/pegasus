@@ -159,8 +159,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-BLOB_STORAGE_URL = 'https://pieteliteblob.blob.core.windows.net/'
-
 # if DEBUG:
 #     STATIC_URL = '/static/'
 #     STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
@@ -188,8 +186,13 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Celery Configuration Options
 CELERY_TIMEZONE = "America/New_York"
 CELERY_TASK_TRACK_STARTED = True
-CELERY_TASK_TIME_LIMIT = 30 * 60  # Is this 30 minutes?
-BROKER_URL = f'amqp://pietelite:math3matics@{"localhost" if DEBUG else "broker"}:5672/pegasus_vhost'
+CELERY_TASK_TIME_LIMIT = 60 * 60  # Is this 60 minutes?
+BROKER_URL = f'amqp://' \
+             f'{os.environ["RABBITMQ_DEFAULT_USER"]}:' \
+             f'{os.environ["RABBITMQ_DEFAULT_PASS"]}@' \
+             f'{"localhost" if DEBUG else "broker"}:' \
+             f'5672/' \
+             f'{os.environ["RABBITMQ_DEFAULT_VHOST"]}'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

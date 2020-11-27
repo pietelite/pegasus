@@ -71,9 +71,8 @@ def upload_session_clips(session_key: str, files: List[File]) -> List[SessionCli
 
     # Upload from buffer media location to blob storage
     for clip in session_clips:
-        get_sql_handler().insert_session_clip(clip)
-        print("saving clip to blob")
         save_clip_to_blob(clip.temp_file_path(), clip.clip_id)
+        get_sql_handler().insert_session_clip(clip)
         remove(clip.temp_file_path())
     return session_clips
 

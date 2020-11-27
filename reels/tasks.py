@@ -21,7 +21,6 @@ logger = get_task_logger(__name__)
 def make(session_key: str, user_id: str, config: dict) -> None:
     session_clips = get_sql_handler().get_session_clips_by_session_key(session_key)
     for session_clip in session_clips:
-        print(session_clip.clip_id)
         download_clip_from_blob(session_clip.temp_file_path(), session_clip.clip_id)
     session_audios = get_sql_handler().get_session_audio_by_session_key(session_key)
     session_audio = None
