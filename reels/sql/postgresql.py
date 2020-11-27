@@ -45,12 +45,12 @@ WHERE NOT EXISTS (
 CREATE TABLE IF NOT EXISTS videos (
     video_id CHAR(32) NOT NULL PRIMARY KEY,
     user_id CHAR(32) NOT NULL,
-    session_key CHAR(32) NOT NULL,
+    session_key CHAR(32),
     file_type VARCHAR(255) NOT NULL,
     config JSON NOT NULL,
     created BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE NO ACTION
+    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE SET NULL
 );
 
 /* sessionclips */
