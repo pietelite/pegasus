@@ -1,0 +1,60 @@
+on: [push]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout Github Action' 
+      uses: actions/checkout@master
+    
+    - name: 'Login via Azure CLI'
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: pegasuscontainerregistry.azurecr.io
+        username: ${{ secrets.acr_pegasuscontainerregistry_username }}
+        password: ${{ secrets.acr_pegasuscontainerregistry_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker-compose build
+        docker-compose push
+
+    - name: Set Web App ACR authentication
+      uses: Azure/appservice-settings@v1
+      with: 
+        app-name: pegasuscontainerizedapp
+        app-settings-json: | 
+          [
+            {
+              "name": "DOCKER_REGISTRY_SERVER_URL",
+              "value": "pegasuscontainerregistry.azurecr.io",
+              "slotSetting": false
+            },
+            {
+              "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+              "value": "${{ secrets.acr_pegasuscontainerregistry_username }}",
+              "slotSetting": false
+            },
+            {
+              "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+              "value": "${{ secrets.acr_pegasuscontainerregistry_password }}",
+              "slotSetting": false
+            }            
+          ]
+      
+    - uses: azure/webapps-deploy@v2
+      with:
+        app-name: pegasuscontainerizedapp
+        images: |
+          pegasuscontainerregistry.azurecr.io/reels:${{ github.sha }}
+          pegasuscontainerregistry.azurecr.io/worker:${{ github.sha }}
+          zoomeranalytics/flower:0.9.1-4.0.2
+          rabbitmq:3.8.9
+          postgres
+          dpage/pgadmin4
+        configuration-file: ./docker-compose.yml

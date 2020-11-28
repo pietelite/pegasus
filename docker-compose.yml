@@ -63,7 +63,7 @@ services:
     env_file:
       - env.env
     ports:
-      - "8080:80"
+      - "8080:8080"
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     links:
@@ -71,5 +71,17 @@ services:
 
 volumes:
   server-data:
+    driver: azure_file
+    driver_opts:
+      share_name: webappshare
+      storage_account_name: pegasuspietelitestorage
   db-data:
+    driver: azure_file
+    driver_opts:
+      share_name: dbshare
+      storage_account_name: pegasuspietelitestorage
   pgadmin-data:
+    driver: azure_file
+    driver_opts:
+      share_name: pgadminshare
+      storage_account_name: pegasuspietelitestorage
