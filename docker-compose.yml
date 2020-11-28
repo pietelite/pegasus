@@ -8,12 +8,12 @@ services:
     #    image: &app pegasus
     restart: "no"
     command: bash -c "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
-    env_file: &envfile
+    env_file:
       - env.env
     ports:
       - "8000:8000"
     volumes:
-      - .:/code
+      - server-data:/var/lib/server
     depends_on:
       - broker
       - db
@@ -21,12 +21,12 @@ services:
   worker:
     build: .
 #    image: *app
-    restart: "no"
+    restart: "always"
     env_file:
       - env.env
     command: celery -A pegasus worker -l info
     volumes:
-      - .:/code
+      - server-data:/var/lib/server
     depends_on:
       - broker
 
@@ -47,8 +47,8 @@ services:
     env_file:
       - env.env
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "5672:5672"
+      - "15672:15672"
 
   db:
     image: postgres
@@ -72,5 +72,6 @@ services:
       - "db:pgsql-server"
 
 volumes:
+  server-data:
   db-data:
   pgadmin-data:

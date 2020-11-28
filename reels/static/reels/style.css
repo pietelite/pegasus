@@ -1,10 +1,17 @@
 /* THEMES */
 :root {
-    --primary-theme: #43AA8B;
+    /* THEME 1 */
+    /* --primary-theme: #43AA8B;
     --secondary-theme: #DB504A;
     --background-1: #FCEFF9;
     --background-2: #B2B09B;
-    --background-3: #254441;
+    --background-3: #254441; */
+    /* THEME 2 */
+    --primary-theme: #3A4E48;
+    --secondary-theme: #DB504A;
+    --background-1: #7A7B76;
+    --background-2: #BEB0A7;
+    --background-3: #8B9D83;
 }
 
 /* Animation */
@@ -103,7 +110,7 @@ body {
 /* Body */
 
 body {
-    background: #FCEFF9;
+    background: var(--background-1);
 }
 
 /* Content */
