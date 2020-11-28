@@ -21,8 +21,8 @@ jobs:
     - name: Build and push image to ACR
       id: build-image
       run: |
-        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t pegasuscontainerregistry.azurecr.io/pegasuscontainerizedapp-img:${{ github.sha }}
-        docker push pegasuscontainerregistry.azurecr.io/pegasuscontainerizedapp-img:${{ github.sha }}
+        docker-compose build
+        docker-compose push
 
     - name: Set Web App ACR authentication
       uses: Azure/appservice-settings@v1
@@ -57,3 +57,4 @@ jobs:
           rabbitmq:3.8.9
           postgres
           dpage/pgadmin4
+        configuration-file: ./docker-compose.yml
