@@ -50,5 +50,11 @@ jobs:
     - uses: azure/webapps-deploy@v2
       with:
         app-name: pegasuscontainerizedapp
-        images: pegasuscontainerregistry.azurecr.io/pegasuscontainerizedapp-img:${{ github.sha }}
+        images: |
+          pegasuscontainerregistry.azurecr.io/reels:${{ github.sha }}
+          pegasuscontainerregistry.azurecr.io/worker:${{ github.sha }}
+          zoomeranalytics/flower:0.9.1-4.0.2
+          rabbitmq:3.8.9
+          postgres
+          dpage/pgadmin4
         configuration-file: ./docker-compose.yml
