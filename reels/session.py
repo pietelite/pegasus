@@ -43,8 +43,11 @@ def update_session_in_context(context: dict, session: SessionBase) -> dict:
     context['user_data'] = {}
     if session_is_logged_in(session):
         context['user_data'] = session['user_data']
-    context['session_clips'] = [{'file_name': clip.file_name} for clip in
-                                get_session_clips(session.session_key)]
+    context['session_clips'] = [{
+        'file_name': clip.file_name,
+        'clip_id': clip.clip_id,
+        'available': clip.available
+    } for clip in get_session_clips(session.session_key)]
     session_audio = get_session_audio(session.session_key)
     if session_audio:
         context['session_audio'] = {'file_name': session_audio.file_name}
@@ -61,19 +64,20 @@ def _upload_file(file, destination_path):
 # Uploads a clip to media folder
 def upload_session_clips(session_key: str, files: List[File]) -> List[SessionClip]:
     session_clips = []
-    time_sec = int(time.time())
 
     # Upload buffers
     for i in range(len(files)):
-        session_clip = SessionClip(files[i].name, session_key, preset_config={})
+        session_clip = SessionClip(files[i].name, session_key, config={})
         _upload_file(files[i], session_clip.temp_file_path())
+        print(f"Uploaded to {session_clip.temp_file_path()}")
         session_clips.append(session_clip)
+
+    for clip in session_clips:
+        get_sql_handler().insert_session_clip(clip)
 
     # Upload from buffer media location to blob storage
     for clip in session_clips:
-        save_clip_to_blob(clip.temp_file_path(), clip.clip_id)
-        get_sql_handler().insert_session_clip(clip)
-        remove(clip.temp_file_path())
+        save_clip_to_blob.delay(clip.temp_file_path(), clip.clip_id)
     return session_clips
 
 
@@ -87,13 +91,13 @@ def upload_session_audio(session_key: str, file: File) -> SessionAudio:
     # Delete a audio if it exists already
     session_audio = get_session_audio(session_key)
     if session_audio:
-        delete_audio_in_blob(session_audio.audio_id)
+        delete_audio_in_blob.delay(session_audio.audio_id)
         get_sql_handler().delete_session_audio(session_audio.audio_id)
     # Upload new audio
     session_audio = SessionAudio(file.name, session_key)
-    _upload_file(file, join(MEDIA_ROOT, session_audio.temp_file_path()))
+    _upload_file(file, session_audio.temp_file_path())
     get_sql_handler().insert_session_audio(session_audio)
-    save_audio_to_blob(join(MEDIA_ROOT, session_audio.temp_file_path()), session_audio.audio_id)
+    save_audio_to_blob.delay(session_audio.temp_file_path(), session_audio.audio_id)
     remove(session_audio.temp_file_path())
     return session_audio
 
@@ -110,10 +114,10 @@ def get_session_audio(session_key: str) -> Optional[SessionAudio]:
 def clear_session_uploads(session_key: str) -> None:
     session_clips = get_session_clips(session_key)
     for session_clip in session_clips:
-        delete_clip_in_blob(session_clip.clip_id)
+        delete_clip_in_blob(session_clip.clip_id, sync=False)
         get_sql_handler().delete_session_clip(session_clip.clip_id)
 
     session_audio = get_session_audio(session_key)
     if session_audio:
-        delete_audio_in_blob(session_audio.audio_id)
+        delete_audio_in_blob(session_audio.audio_id, sync=False)
         get_sql_handler().delete_session_audio(session_audio.audio_id)

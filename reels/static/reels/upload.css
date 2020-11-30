@@ -15,7 +15,8 @@
     width: 100vw;
 }
 
-#working-element > * {
+#working-element > *,
+.processing-element > * {
     display: flex;
 }
 

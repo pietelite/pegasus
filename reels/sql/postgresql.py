@@ -1,3 +1,4 @@
+from abc import ABC
 from os import environ
 from typing import Union, List, Optional
 
@@ -9,7 +10,7 @@ from django.db import connection
 from .sql import SqlHandlerInterface
 
 
-class PostgreSqlHandler(SqlHandlerInterface):
+class PostgreSqlHandler(SqlHandlerInterface, ABC):
     # TODO make all inserts specify which columns its inserting all values
     # Initialize all objects in database
     @overrides
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     created BIGINT NOT NULL,
-    last_seen BIGINT NOT NULL,
+    last_online BIGINT NOT NULL,
     verified BIT DEFAULT '0'
 );
 
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS videos (
     file_type VARCHAR(255) NOT NULL,
     config JSON NOT NULL,
     created BIGINT NOT NULL,
+    available BIT DEFAULT '0',
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE SET NULL
 );
@@ -58,7 +60,8 @@ CREATE TABLE IF NOT EXISTS sessionclips (
     clip_id CHAR(32) NOT NULL PRIMARY KEY,
     session_key CHAR(32) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    preset_config JSON NOT NULL,
+    config JSON NOT NULL,
+    available BIT DEFAULT '0',
     FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE CASCADE
 );
 
@@ -67,7 +70,8 @@ CREATE TABLE IF NOT EXISTS sessionaudio (
     audio_id CHAR(32) NOT NULL PRIMARY KEY,
     session_key CHAR(32) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    preset_config JSON NOT NULL,
+    config JSON NOT NULL,
+    available BIT DEFAULT '0',
     FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE CASCADE
 );
 
@@ -151,14 +155,31 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def insert_user(self, user: User) -> None:
         with connection.cursor() as cursor:
-            query = "INSERT INTO users VALUES (" \
+            query = "INSERT INTO users " \
+                    "(user_id, user_name, password, email, created, last_online) " \
+                    "VALUES (" \
                     f"'{user.user_id}', " \
                     f"'{user.user_name}', " \
                     f"'{user.password}', " \
                     f"'{user.email}', " \
-                    f"'{int(user.created)}', " \
-                    f"'{int(user.last_online)}', " \
+                    f"{int(user.created)}, " \
+                    f"{int(user.last_online)}, " \
                     "'0')"
+            cursor.execute(query)
+
+    @overrides
+    def update_user(self, user: User):
+        with connection.cursor() as cursor:
+            query = f"UPDATE users " \
+                    f"(" \
+                    f"user_name = '{user.user_name}'" \
+                    f"password = '{user.password}', " \
+                    f"email = '{user.email}', " \
+                    f"created = '{int(user.created)}', " \
+                    f"last_online = '{int(user.last_online)}', " \
+                    f"verified = '{int(user.verified)}'" \
+                    f" " \
+                    f"WHERE user_id = '{user.user_id}'"
             cursor.execute(query)
 
     # Delete user information from database
@@ -172,22 +193,52 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_user(self, user_id: str) -> Union[User, None]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM users WHERE user_id = '{user_id}'"
+            query = f"SELECT " \
+                    f"user_id," \
+                    f"user_name," \
+                    f"password," \
+                    f"email," \
+                    f"created," \
+                    f"last_online," \
+                    f"verified" \
+                    f" " \
+                    f"FROM users WHERE user_id = '{user_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
-            return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
+            return User(user_id=row[0],
+                        user_name=row[1],
+                        password=row[2],
+                        email=row[3],
+                        created=row[4],
+                        last_online=row[5],
+                        verified=row[6])
         return None
 
     # Gets a User object from data from the database using either the username or email
     @overrides
     def get_user_by_credential(self, username_or_email: str) -> Optional[User]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM users WHERE user_name = '{username_or_email}' OR email = '{username_or_email}'"
+            query = f"SELECT " \
+                    f"user_id," \
+                    f"user_name," \
+                    f"password," \
+                    f"email," \
+                    f"created," \
+                    f"last_online," \
+                    f"verified" \
+                    f" " \
+                    f"FROM users WHERE user_name = '{username_or_email}' OR email = '{username_or_email}'"
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
-            return User(row[1], row[2], row[3], row[0], row[4], row[5], row[6])
+            return User(user_id=row[0],
+                        user_name=row[1],
+                        password=row[2],
+                        email=row[3],
+                        created=row[4],
+                        last_online=row[5],
+                        verified=row[6])
         return None
 
     # === VIDEOS AND TAGS ===
@@ -196,13 +247,30 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def insert_video(self, video: Video) -> None:
         with connection.cursor() as cursor:
-            query = f"INSERT INTO videos VALUES (" \
+            query = f"INSERT INTO videos " \
+                    f"(video_id, user_id, session_key, file_type, config, created) " \
+                    f"VALUES (" \
                     f"'{video.video_id}', " \
                     f"'{video.user_id}', " \
                     f"'{video.session_key}', " \
                     f"'{video.file_type}', " \
                     f"'{video.config}', " \
                     f"'{video.created}')"
+            cursor.execute(query)
+
+    @overrides
+    def update_video(self, video: Video):
+        with connection.cursor() as cursor:
+            query = f"UPDATE videos " \
+                    f"(" \
+                    f"user_id = '{video.user_id}', " \
+                    f"session_key = '{video.session_key}'" \
+                    f"file_type = '{video.file_type}', " \
+                    f"config = '{video.config}', " \
+                    f"created = '{video.created}', " \
+                    f"available = '{int(video.available)}', " \
+                    f") " \
+                    f"WHERE video_id = '{video.video_id}'"
             cursor.execute(query)
 
     # Deletes video information from relational database. This does not do anything with the actual video.
@@ -216,46 +284,76 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_video(self, video_id: str) -> Optional[Video]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM videos WHERE video_id = '{video_id}'"
+            query = f"SELECT " \
+                    f"user_id, " \
+                    f"file_type, " \
+                    f"session_key, " \
+                    f"video_id, " \
+                    f"config, " \
+                    f"created, " \
+                    f"available" \
+                    f" " \
+                    f"FROM videos WHERE video_id = '{video_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
             # TODO need to do something special with this JSON config
-            return Video(user_id=row[1],
-                         file_type=row[3],
+            return Video(user_id=row[0],
+                         file_type=row[1],
                          session_key=row[2],
-                         video_id=row[0],
+                         video_id=row[3],
                          config=row[4],
-                         created=row[5])
+                         created=row[5],
+                         available=bool(row[6]))
         return None
 
     @overrides
     def get_videos_by_user_id(self, user_id: str) -> List[Video]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM videos WHERE user_id = '{user_id}'"
+            query = f"SELECT " \
+                    f"user_id, " \
+                    f"file_type, " \
+                    f"session_key, " \
+                    f"video_id, " \
+                    f"config, " \
+                    f"created, " \
+                    f"available" \
+                    f" " \
+                    f"FROM videos WHERE user_id = '{user_id}'"
             cursor.execute(query)
             rows = cursor.fetchall()
         # TODO need to do something special with this JSON config
-        return [Video(user_id=row[1],
-                      file_type=row[3],
+        return [Video(user_id=row[0],
+                      file_type=row[1],
                       session_key=row[2],
-                      video_id=row[0],
+                      video_id=row[3],
                       config=row[4],
-                      created=row[5]) for row in rows]
+                      created=row[5],
+                      available=bool(row[6])) for row in rows]
 
     @overrides
     def get_videos_by_session_key(self, session_key: str) -> List[Video]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM videos WHERE session_key = '{session_key}'"
+            query = f"SELECT " \
+                    f"user_id, " \
+                    f"file_type, " \
+                    f"session_key, " \
+                    f"video_id, " \
+                    f"config, " \
+                    f"created, " \
+                    f"available" \
+                    f" " \
+                    f"FROM videos WHERE session_key = '{session_key}'"
             cursor.execute(query)
             rows = cursor.fetchall()
         # TODO need to do something special with this JSON config
-        return [Video(user_id=row[1],
-                      file_type=row[3],
+        return [Video(user_id=row[0],
+                      file_type=row[1],
                       session_key=row[2],
-                      video_id=row[0],
+                      video_id=row[3],
                       config=row[4],
-                      created=row[5]) for row in rows]
+                      created=row[5],
+                      available=bool(row[6])) for row in rows]
 
     # === SESSION ===
 
@@ -263,11 +361,13 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def insert_session_clip(self, clip: SessionClip) -> None:
         with connection.cursor() as cursor:
-            query = f"INSERT INTO sessionclips VALUES (" \
+            query = f"INSERT INTO sessionclips " \
+                    f"(clip_id, session_key, file_name, config) " \
+                    f"VALUES (" \
                     f"'{clip.clip_id}', " \
                     f"'{clip.session_key}', " \
                     f"'{clip.file_name}', " \
-                    f"'{clip.preset_config}')"
+                    f"'{clip.config}')"
             cursor.execute(query)
 
     # Deletes clip information from relational database. This does not do anything with the actual clip.
@@ -288,27 +388,55 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_session_clip(self, clip_id: str) -> Optional[SessionClip]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM sessionclips WHERE clip_id = '{clip_id}'"
+            query = f"SELECT " \
+                    f"clip_id, " \
+                    f"session_key," \
+                    f"file_name, " \
+                    f"config," \
+                    f"available" \
+                    f" " \
+                    f"FROM sessionclips WHERE clip_id = '{clip_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
-            return SessionClip(row[2], row[1], row[0], row[2])
+            return SessionClip(clip_id=row[0],
+                               session_key=row[1],
+                               file_name=row[2],
+                               config=row[3],
+                               available=bool(row[4]))
         return None
 
     # Gets all session clip information from a single session id
     @overrides
     def get_session_clips_by_session_key(self, session_key: str) -> List[SessionClip]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM sessionclips WHERE session_key = '{session_key}'"
+            query = f"SELECT " \
+                    f"clip_id, " \
+                    f"session_key," \
+                    f"file_name, " \
+                    f"config," \
+                    f"available" \
+                    f" " \
+                    f"FROM sessionclips WHERE session_key = '{session_key}'"
             cursor.execute(query)
             rows = cursor.fetchall()
-        return [SessionClip(row[2], row[1], row[0], row[2]) for row in rows]
+        return [SessionClip(clip_id=row[0],
+                            session_key=row[1],
+                            file_name=row[2],
+                            config=row[3],
+                            available=bool(row[4])) for row in rows]
 
     # Inserts a clip uploaded from a session. This does not do anything with the actual clip.
     @overrides
     def insert_session_audio(self, audio: SessionAudio) -> None:
         with connection.cursor() as cursor:
-            query = f"INSERT INTO sessionaudio VALUES ('{audio.audio_id}', '{audio.session_key}', '{audio.file_name}', '{audio.preset_config}')"
+            query = f"INSERT INTO sessionaudio " \
+                    f"(audio_id, session_key, file_name, config) " \
+                    f"VALUES (" \
+                    f"'{audio.audio_id}', " \
+                    f"'{audio.session_key}', " \
+                    f"'{audio.file_name}', " \
+                    f"'{audio.config}')"
             cursor.execute(query)
 
     # Deletes clip information from relational database. This does not do anything with the actual clip.
@@ -329,21 +457,43 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_session_audio(self, audio_id: str) -> Union[SessionAudio, None]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM sessionaudio WHERE audio_id = '{audio_id}'"
+            query = f"SELECT " \
+                    f"audio_id," \
+                    f"session_key," \
+                    f"file_name," \
+                    f"config, " \
+                    f"available" \
+                    f" " \
+                    f"FROM sessionaudio WHERE audio_id = '{audio_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
-            return SessionAudio(row[2], row[1], row[0], row[2])
+            return SessionAudio(audio_id=row[0],
+                                session_key=row[1],
+                                file_name=row[2],
+                                config=row[3],
+                                available=row[4])
         return None
 
     # Gets all session clip information from a single session id
     @overrides
     def get_session_audio_by_session_key(self, session_key: str) -> List[SessionAudio]:
         with connection.cursor() as cursor:
-            query = f"SELECT * FROM sessionaudio WHERE session_key = '{session_key}'"
+            query = f"SELECT " \
+                    f"audio_id," \
+                    f"session_key," \
+                    f"file_name," \
+                    f"config, " \
+                    f"available" \
+                    f" " \
+                    f"FROM sessionaudio WHERE session_key = '{session_key}'"
             cursor.execute(query)
             rows = cursor.fetchall()
-        return [SessionAudio(row[2], row[1], row[0], row[2]) for row in rows]
+        return [SessionAudio(audio_id=row[0],
+                             session_key=row[1],
+                             file_name=row[2],
+                             config=row[3],
+                             available=row[4]) for row in rows]
 
     # === POSTS, TAGS, AND LIKES ===
 
@@ -351,7 +501,9 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def insert_post(self, post: Post) -> None:
         with connection.cursor() as cursor:
-            query = "INSERT INTO posts VALUES (" \
+            query = "INSERT INTO posts " \
+                    "(post_id, video_id, title, description) " \
+                    "VALUES (" \
                     f"'{post.post_id}', " \
                     f"'{post.video_id}', " \
                     f"'{self.escape_apostrophes(post.title)}', " \
@@ -380,6 +532,7 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_post(self, post_id: str) -> Optional[Post]:
         with connection.cursor() as cursor:
+            # TODO write post column order explicitly
             query = f"SELECT * FROM posts WHERE post_id = '{post_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
@@ -391,7 +544,9 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_post_ids_by_user_id(self, user_id: str) -> list:
         with connection.cursor() as cursor:
-            query = f"SELECT posts.post_id FROM posts INNER JOIN videos ON posts.video_id = videos.video_id WHERE videos.user_id = '{user_id}'"
+            query = f"SELECT posts.post_id FROM posts " \
+                    f"INNER JOIN videos ON posts.video_id = videos.video_id " \
+                    f"WHERE videos.user_id = '{user_id}'"
             cursor.execute(query)
             rows = cursor.fetchall()
         return [row[0] for row in rows]
@@ -432,6 +587,7 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def has_liked(self, user_id: str, post_id: str) -> bool:
         with connection.cursor() as cursor:
+            # TODO write select column order explicitly
             query = f"SELECT * FROM likes WHERE user_id = '{user_id}' AND post_id = '{post_id}'"
             cursor.execute(query)
             row = cursor.fetchone()
@@ -447,7 +603,12 @@ CREATE TRIGGER update_post_trigger_delete
             now_liked = False
         else:
             like = Like(user_id, post_id)
-            query = f"INSERT INTO likes VALUES ('{like.user_id}', '{like.post_id}', '{like.timestamp}')"
+            query = f"INSERT INTO likes " \
+                    f"(user_id, post_id, timestamp) " \
+                    f"VALUES (" \
+                    f"'{like.user_id}', " \
+                    f"'{like.post_id}', " \
+                    f"{like.timestamp})"
             now_liked = True
         with connection.cursor() as cursor:
             cursor.execute(query)
@@ -466,6 +627,7 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def get_admin_user(self) -> User:
         with connection.cursor() as cursor:
+            # TODO select user column order explicitly
             query = f"SELECT * FROM users WHERE user_id = '{'0' * 32}'"
             cursor.execute(query)
             row = cursor.fetchone()

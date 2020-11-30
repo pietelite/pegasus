@@ -22,19 +22,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', default=get_random_secret_key())
 
 # # Get all machines marked for development and turn on DEBUG for them
-# with open('./development_machines.txt', 'r') as dev_machine_file:
-#     dev_machines = dev_machine_file.read().split('\n')
-#
-# dev_machines = [machine.strip() for machine in dev_machines]
-#
-# DEBUG = socket.gethostname() in dev_machines
-#
-# if not DEBUG:
-#     print("""
-# DEBUG is False. If you want to be in development mode,
-# make sure you add your device's hostname ({})
-# to development_machines.txt
-#     """.format(socket.gethostname()))
+with open('./development_machines.txt', 'r') as dev_machine_file:
+    dev_machines = dev_machine_file.read().split('\n')
+
+dev_machines = [machine.strip() for machine in dev_machines]
+
+DEV = socket.gethostname() in dev_machines
+
+if not DEV:
+    print(f"""
+    You are not in development mode. If you want to be in development mode,
+    add your hostname ({socket.gethostname()}) to /development_machines.txt
+    on a new line and restart the application.
+    """)
+
 if os.getenv('PEGASUS_DEBUG', default='TRUE').upper() == 'TRUE':
     DEBUG = True
 else:
@@ -47,7 +48,7 @@ print('DEBUG = {}'.format(DEBUG))
 # To keep POST data, we cannot append a trailing slash to post URLs
 APPEND_SLASH = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'pegasus-pietelite.azurewebsites.net']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'reels.gg', '*']
 
 # Application definition
 
@@ -59,7 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 'storages',
-    'emoji',
+    # 'emoji',
     'reels',
 ]
 
@@ -104,7 +105,7 @@ DATABASES = {
         'NAME': os.environ['POSTGRES_DB'],
         'USER': os.environ['POSTGRES_USER'],
         'PASSWORD': os.environ['POSTGRES_PASSWORD'],
-        'HOST': 'localhost' if DEBUG else 'db',
+        'HOST': 'localhost' if DEV else 'db',
         'PORT': 5432,
     },
     # 'mssql': {
@@ -190,7 +191,7 @@ CELERY_TASK_TIME_LIMIT = 60 * 60  # Is this 60 minutes?
 BROKER_URL = f'amqp://' \
              f'{os.environ["RABBITMQ_DEFAULT_USER"]}:' \
              f'{os.environ["RABBITMQ_DEFAULT_PASS"]}@' \
-             f'{"localhost" if DEBUG else "broker"}:' \
+             f'{"localhost" if DEV else "broker"}:' \
              f'5672/' \
              f'{os.environ["RABBITMQ_DEFAULT_VHOST"]}'
 CELERY_ACCEPT_CONTENT = ['application/json']

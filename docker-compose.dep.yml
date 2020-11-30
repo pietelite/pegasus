@@ -4,11 +4,11 @@ services:
   reels:
     build: .
     image: pegasuscontainerregistry.azurecr.io/reels
-    restart: "no"
-    command: bash -c "python manage.py migrate
-                      && python manage.py collectstatic --noinput
-                      && python manage.py shell --command=\"from reels.sql.sql import get_sql_handler; get_sql_handler().init_database()\"
-                      && python manage.py runserver 0.0.0.0:80"
+    restart: "on-failure"
+    command: bash -c "python manage.py migrate && \
+                      python manage.py collectstatic --noinput && \
+                      python manage.py shell --command=\"from reels.sql.sql import get_sql_handler; get_sql_handler().init_database()\" && \
+                      python manage.py runserver 0.0.0.0:80"
     env_file:
       - env.env
     ports:
@@ -21,13 +21,13 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 2G
+          cpus: '1'
+          memory: 1.5G
 
   worker:
     build: .
     image: pegasuscontainerregistry.azurecr.io/worker
-    restart: "on-failure"
+    restart: "no"
     env_file:
       - env.env
     command: celery -A pegasus worker -l info
@@ -43,8 +43,7 @@ services:
 
   flower:
     image: zoomeranalytics/flower:0.9.1-4.0.2
-    restart: "no"
-    command: flower --broker=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@broker:5672/${RABBITMQ_DEFAULT_VHOST}
+    restart: "always"
     env_file:
       - env.env
     ports:
@@ -106,5 +105,17 @@ services:
 
 volumes:
   server-data:
+    driver: azure_file
+    driver_opts:
+      share_name: webappshare
+      storage_account_name: pegasuspietelitestorage
   db-data:
+    driver: azure_file
+    driver_opts:
+      share_name: dbshare
+      storage_account_name: pegasuspietelitestorage
   pgadmin-data:
+    driver: azure_file
+    driver_opts:
+      share_name: pgadminshare
+      storage_account_name: pegasuspietelitestorage

@@ -37,7 +37,20 @@
         {% endif %}
 
         {% for session_clip in session_clips %}
-        <span>{{ session_clip.file_name }}</span>
+        <ul>
+            <li><span>{{ session_clip.file_name }}</span></li>
+            {% if not session_clip.available %}
+            <li><div class="processing-element"></div></li>
+            {% endif %}
+            <li class="delete-button">
+                <form action="/create" method="POST">
+                    {% csrf_token %}
+                    <button name="delete_clip" value="{{ session_clip.clip_id }}">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </form>
+            </li>
+        </ul>
         <br>
         {% endfor %}
     </div>
@@ -46,9 +59,9 @@
             {% csrf_token %}
             <input type="file" id="video_file_button" name="video_file" accept="video/mp4" multiple>
         </form>
-<!--        <button class="reels-button" onclick="uploadToForm('video_file_button', 'upload_video_form');">-->
-<!--                Upload Videos-->
-<!--        </button>-->
+        <!--        <button class="reels-button" onclick="uploadToForm('video_file_button', 'upload_video_form');">-->
+        <!--                Upload Videos-->
+        <!--        </button>-->
     </div>
 </div>
 <div class="container">
@@ -65,9 +78,9 @@
             {% csrf_token %}
             <input type="file" id="audio_file_button" name="audio_file" accept="audio/mp3" multiple>
         </form>
-<!--        <button class="reels-button" onclick="uploadToForm('audio_file_button', 'upload_audio_form');">-->
-<!--                Upload Audio-->
-<!--        </button>-->
+        <!--        <button class="reels-button" onclick="uploadToForm('audio_file_button', 'upload_audio_form');">-->
+        <!--                Upload Audio-->
+        <!--        </button>-->
     </div>
 </div>
 <div id="config-container" class="container">
@@ -82,10 +95,11 @@
     </div>
 </div>
 <div id="submit-container" class="container">
-    <button class="reels-button" name="make_button"
+    <button class="reels-button" name="compile"
             value="create"
             style="display: block; margin-left: auto; margin-right: auto;"
-            onclick="document.getElementById('config-form').submit();">Create!</button>
+            onclick="document.getElementById('config-form').submit();">Create!
+    </button>
 </div>
 {% endblock %}
 

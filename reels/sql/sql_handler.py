@@ -17,6 +17,10 @@ class SqlHandlerInterface:
     def insert_user(self, user: User) -> None:
         raise NotImplementedError
 
+    # Updates the user in the database with the same user_id
+    def update_user(self, user: User) -> None:
+        raise NotImplementedError
+
     # Delete user information from database
     def delete_user(self, user_id: str) -> None:
         raise NotImplementedError
@@ -33,6 +37,10 @@ class SqlHandlerInterface:
 
     # Inserts video information to relational database. This does not do anything with the actual video.
     def insert_video(self, video: Video) -> None:
+        raise NotImplementedError
+
+    # Updates the video in the database with the same video_id
+    def update_video(self, video: Video) -> None:
         raise NotImplementedError
 
     # Deletes video information from relational database. This does not do anything with the actual video.
@@ -56,6 +64,10 @@ class SqlHandlerInterface:
     def insert_session_clip(self, clip: SessionClip) -> None:
         raise NotImplementedError
 
+    # Updates a clip uploaded from a session based on its clip_id. This does not do anything with the actual clip.
+    def update_session_clip(self, clip: SessionClip) -> None:
+        raise NotImplementedError
+
     # Deletes clip information from relational database. This does not do anything with the actual clip.
     def delete_session_clip(self, clip_id: str) -> None:
         raise NotImplementedError
@@ -72,23 +84,27 @@ class SqlHandlerInterface:
     def get_session_clips_by_session_key(self, session_key: str) -> List[SessionClip]:
         raise NotImplementedError
 
-    # Inserts a clip uploaded from a session. This does not do anything with the actual clip.
+    # Inserts audio uploaded from a session. This does not do anything with the actual audio.
     def insert_session_audio(self, audio: SessionAudio) -> None:
         raise NotImplementedError
 
-    # Deletes clip information from relational database. This does not do anything with the actual clip.
+    # Updates audio uploaded from a session. This does not do anything with the actual audio.
+    def update_session_audio(self, audio: SessionAudio) -> None:
+        raise NotImplementedError
+
+    # Deletes audio information from relational database. This does not do anything with the actual audio.
     def delete_session_audio(self, audio_id: str) -> None:
         raise NotImplementedError
 
-    # Delete all video information associated with a session. This does not do anything with the actual clip.
+    # Delete all audio information associated with a session. This does not do anything with the actual audio.
     def delete_session_audio_by_session_key(self, session_key: str):
         raise NotImplementedError
 
-    # Gets session clip information from a single clip id
+    # Gets session audio information from a single audio_id
     def get_session_audio(self, audio_id: str) -> Union[SessionAudio, None]:
         raise NotImplementedError
 
-    # Gets all session clip information from a single session id
+    # Gets all session audio information from a single session_key
     def get_session_audio_by_session_key(self, session_key: str) -> List[SessionAudio]:
         raise NotImplementedError
 
@@ -96,6 +112,10 @@ class SqlHandlerInterface:
 
     # Inserts a post to database, assuming the corresponding video information has already been inserted
     def insert_post(self, post: Post) -> None:
+        raise NotImplementedError
+
+    # Updates a post in the database using the post_id to match
+    def update_post(self, post: Post) -> None:
         raise NotImplementedError
 
     # Deletes a post from database

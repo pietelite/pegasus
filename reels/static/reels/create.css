@@ -1,7 +1,37 @@
 .uploaded {
-    background-color: var(--background-3);
+    background-color: var(--background-2);
     color: white;
     border-radius: 5px;
     margin: 20px;
     padding: 10px;
+}
+
+.uploaded ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.uploaded li {
+    float: left;
+    padding: 0 20px 0 20px;
+}
+
+.uploaded .delete-button {
+    float: right;
+}
+
+.uploaded .delete-button button {
+    background: transparent;
+    border: none;
+}
+
+.uploaded .delete-button i {
+    display: block;
+    margin: auto;
+    background: var(--secondary-theme);
+    padding: 5px;
+    border-radius: 5px;
+    color: white;
 }

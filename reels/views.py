@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
 from django.utils.encoding import smart_str
 from emoji import Emoji
 
+from .azure.blob import delete_clip_in_blob
 from .config import SUPPORTED_VIDEO_TYPES, SUPPORTED_AUDIO_TYPES
 from .models import User, Post
 from .session import upload_session_clips, session_login, update_session_in_context, session_logout, \
@@ -196,12 +197,23 @@ def create(request) -> HttpResponse:
         compiled_videos = get_sql_handler().get_videos_by_session_key(request.session.session_key)
         context['compiled_videos'] = [vid.contextualize() for vid in compiled_videos]
 
-        request.session.set_test_cookie()
-        return HttpResponse(render(request, 'reels/create.html', context))
     elif request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
             context['post_errors'] = []
+            if 'delete_clip' in request.POST:
+                print("Found!")
+                delete_clip_id = request.POST['delete_clip']
+                session_clip = get_sql_handler().get_session_clip(delete_clip_id)
+                if session_clip:
+                    if session_clip.session_key == request.session.session_key:
+                        get_sql_handler().delete_session_clip(session_clip.clip_id)
+                        delete_clip_in_blob.delay(session_clip.clip_id)
+                    else:
+                        context['post_errors'].append('You tried to delete a clip that doesn\'t belong to you!')
+                else:
+                    context['post_errors'].append('We can\'t find that clip')
+
             if request.FILES:
                 # === User is uploading files ===
 
@@ -233,14 +245,7 @@ def create(request) -> HttpResponse:
                             f'At the moment, we can only support '
                             f'the following video types: {",".join(SUPPORTED_VIDEO_TYPES)}')
 
-                # Update context
-                update_session_in_context(context, request.session)
-
-                # Return the page with any errors
-                request.session.set_test_cookie()
-                return HttpResponse(render(request, 'reels/create.html', context))
-
-            else:
+            if 'compile' in request.POST:
                 # === User is compiling ===
                 if get_session_clips(request.session.session_key):
                     # Get user info
@@ -250,16 +255,16 @@ def create(request) -> HttpResponse:
                         user = get_sql_handler().get_admin_user()
                     config = {'file_type': 'mp4'}
                     make.delay(request.session.session_key, user.user_id, config)
-                    return HttpResponse(render(request, 'reels/compiling.html', context))
                 else:
                     context['post_errors'].append(f'You need to upload your clips first!')
-                    return HttpResponse(render(request, 'reels/create.html', context))
         else:
             context['enable_cookies'] = True
-            return HttpResponse(render(request, 'reels/create.html', context))
     else:
         return _error_response(request, context)
 
+    update_session_in_context(context, request.session)
+    request.session.set_test_cookie()
+    return HttpResponse(render(request, 'reels/create.html', context))
 
 # Handles requests to create or edit a post
 def post_creation(request) -> HttpResponse:

@@ -28,7 +28,8 @@ class Video:
 
     def __init__(self, user_id: str, file_type: str,
                  session_key: str, video_id: str = None,
-                 config: dict = None, created=int(time.time())):
+                 config: dict = None, created=int(time.time()),
+                 available: bool = False):
         if config is None:
             config = {}
         if video_id is None:
@@ -39,6 +40,7 @@ class Video:
         self.video_id = video_id
         self.config = config
         self.created = created
+        self.available = available
 
     def duration(self):
         if exists(self.temp_file_path()):
@@ -93,15 +95,17 @@ class Like:
 # Class for a clip uploaded by a user
 class SessionClip:
 
-    def __init__(self, file_name: str, session_key: str, clip_id=None, preset_config=None):
-        if preset_config is None:
-            preset_config = {}
+    def __init__(self, file_name: str, session_key: str,
+                 clip_id: str = None, config: dict = None, available: bool = False):
+        if config is None:
+            config = {}
         if clip_id is None:
             clip_id = uuid_to_str(uuid4())
         self.file_name = file_name
         self.session_key = session_key
         self.clip_id = clip_id
-        self.preset_config = preset_config
+        self.config = config
+        self.available = available
 
     def duration(self):
         if exists(self.temp_file_path()):
@@ -119,15 +123,17 @@ class SessionClip:
 # Class for an audio file uploaded by a user
 class SessionAudio:
 
-    def __init__(self, file_name: str, session_key: str, audio_id=None, preset_config=None):
-        if preset_config is None:
-            preset_config = {}
+    def __init__(self, file_name: str, session_key: str,
+                 audio_id: str = None, config: dict = None, available: bool = False):
+        if config is None:
+            config = {}
         if audio_id is None:
             audio_id = uuid_to_str(uuid4())
         self.file_name = file_name
         self.session_key = session_key
         self.audio_id = audio_id
-        self.preset_config = preset_config
+        self.config = config
+        self.available = available
 
     def duration(self):
         if exists(self.temp_file_path()):
