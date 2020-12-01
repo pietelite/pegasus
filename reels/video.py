@@ -148,7 +148,7 @@ def delete_session_audio(audio_id: str, sync: bool = True) -> None:
     session_audio = get_sql_handler().get_session_audio(audio_id)
     if session_audio:
         get_sql_handler().delete_session_audio(audio_id)
-        if os.path.exists(session_audio):
+        if os.path.exists(session_audio.local_file_path()):
             os.remove(session_audio.local_file_path())
 
     if sync:

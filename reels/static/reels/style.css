@@ -181,6 +181,7 @@ body {
     margin: 15px 0 15px 0;
     box-shadow: 0 0 10px black;
     min-width: 100px;
+    outline: none;
 }
 
 .reels-button:hover {
