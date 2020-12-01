@@ -1,7 +1,9 @@
 import os
 import uuid
+from datetime import datetime, timedelta
 
-from azure.storage.blob import BlobServiceClient, BlobBlock
+from azure.storage.blob import BlobServiceClient, BlobBlock, generate_blob_sas, generate_container_sas, \
+    AccountSasPermissions, BlobSasPermissions
 from pegasus.celery import app
 from reels.util import uuid_to_str
 
@@ -58,8 +60,19 @@ def download_from_blob(local_path: str, remote_name: str, container_name) -> Non
     blob_client = container_client.get_blob_client(remote_name)
 
     with open(local_path, "wb") as vid:
-        download_stream = blob_client.download_blob(timeout=600)
+        download_stream = blob_client.download_blob(timeout=300)
         vid.write(download_stream.readall())
+
+
+def get_blob_stream_url(remote_name: str, container_name: str) -> str:
+    sas_token = generate_blob_sas(account_name=os.getenv('PEGASUS_BLOB_NAME'),
+                                  account_key=os.getenv('PEGASUS_BLOB_KEY'),
+                                  container_name=container_name,
+                                  blob_name=remote_name,
+                                  permission=BlobSasPermissions(read=True),
+                                  expiry=datetime.utcnow() + timedelta(minutes=10))
+    print(remote_name)
+    return f'https://{os.getenv("PEGASUS_BLOB_NAME")}.blob.core.windows.net/{container_name}/{remote_name}?{sas_token}'
 
 
 # Delete a video file in azure blob storage with a given video_id

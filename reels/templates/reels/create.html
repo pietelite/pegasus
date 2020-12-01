@@ -35,16 +35,23 @@
             <li><span>{{ compiled_video.created_formatted }}</span></li>
             {% if not compiled_video.available %}
             <li style="float: right"><div class="processing-element"></div></li>
-            {% endif %}
-            {% if compiled_video.local_url %}
-            <li style="float: right"><a href="{{ compiled_video.local_url }}"
-                                        style="background-color:
-                                                var(--background-3);
-                                                padding: 5px;
-                                                color: #E0E0E0;
-                                                font-size: 20px;
-                                                border-radius: 10px;"
-                                        download="reel">Download</a></li>
+            {% else %}
+            <li class="inline-button download-button">
+                <form action="/stream" method="POST">
+                    {% csrf_token %}
+                    <button name="download_video" value="{{ compiled_video.video_id }}">
+                        <i class="material-icons">cloud_download</i>
+                    </button>
+                </form>
+            </li>
+            <li class="inline-button delete-button">
+                <form action="/create" method="POST">
+                    {% csrf_token %}
+                    <button name="delete_video" value="{{ compiled_video.video_id }}">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </form>
+            </li>
             {% endif %}
         </ul>
     </div>
@@ -82,7 +89,7 @@
             {% if not session_clip.available %}
             <li><div class="processing-element"></div></li>
             {% endif %}
-            <li class="delete-button">
+            <li class="inline-button delete-button">
                 <form action="/create" method="POST">
                     {% csrf_token %}
                     <button name="delete_clip" value="{{ session_clip.clip_id }}">
@@ -112,7 +119,7 @@
             {% if not session_audio.available %}
             <li><div class="processing-element"></div></li>
             {% endif %}
-            <li class="delete-button">
+            <li class="inline-button delete-button">
                 <form action="/create" method="POST">
                     {% csrf_token %}
                     <button name="delete_audio" value="{{ session_audio.audio_id }}">

@@ -1,5 +1,4 @@
 {% extends "reels/base.html" %}
-{% load emoji_tags %}
 
 {% block title %}
 {% if message_title %}
@@ -16,7 +15,7 @@
     {% endif %}
     {% if message_content %}
     <div class="row justify-content-center">
-        <span>{{ message_content|emoji_replace }} &#65;</span>
+        <span>{{ message_content }} &#65;</span>
     </div>
     {% endif %}
 </div>

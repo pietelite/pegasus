@@ -173,8 +173,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/' if DEV else os.getenv('MEDIA') + '/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') if DEV else os.getenv('MEDIA')
 
 if not os.path.exists(STATIC_ROOT):
     os.mkdir(STATIC_ROOT)

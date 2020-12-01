@@ -19,24 +19,10 @@
     padding: 10px;
 }
 
-.uploaded li {
-    padding: 0 20px 0 20px;
-}
-
-.uploaded .delete-button {
-    float: right;
-}
-
-.uploaded .delete-button button {
-    background: transparent;
-    border: none;
-}
-
-.uploaded .delete-button i {
-    display: block;
-    margin: auto;
+.delete-button i {
     background: var(--secondary-theme);
-    padding: 5px;
-    border-radius: 5px;
-    color: white;
+}
+
+.download-button i {
+    background: var(--background-3);
 }

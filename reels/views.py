@@ -1,13 +1,18 @@
+import os
 import time
 
+import requests
+from datetime import datetime
+from django.http.response import HttpResponseBase
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpRequest, StreamingHttpResponse
 
+from .azure.blob import get_blob_stream_url
 from .config import SUPPORTED_VIDEO_TYPES, SUPPORTED_AUDIO_TYPES
 from .models import Post
 from .session import session_login, update_session_in_context, session_logout, \
     upload_session_audio
-from .tasks import make, delete_session_clip, delete_session_audio
+from .tasks import delete_session_clip, delete_session_audio, compile_video
 from .models import User
 from .session import upload_session_clips, session_is_logged_in, session_get_user
 from .util import is_file_supported
@@ -15,6 +20,7 @@ from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
 from .sql.sql import get_sql_handler
+from .video import delete_video
 
 
 def _http_response_message(request: HttpRequest, context: dict, title: str, header: str, content: str) -> HttpResponse:
@@ -196,7 +202,19 @@ def create(request) -> HttpResponse:
     elif request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
-            if 'delete_clip' in request.POST:
+
+            if 'delete_video' in request.POST:
+                delete_video_id = request.POST['delete_video']
+                vid = get_sql_handler().get_video(delete_video_id)
+                if vid:
+                    if vid.session_key == request.session.session_key:
+                        delete_video(vid.video_id, sync=True)
+                    else:
+                        post_errors.append('You tried to delete a video that doesn\'t belong to you!')
+                else:
+                    post_errors.append('We can\'t find that video')
+
+            elif 'delete_clip' in request.POST:
                 delete_clip_id = request.POST['delete_clip']
                 session_clip = get_sql_handler().get_session_clip(delete_clip_id)
                 if session_clip:
@@ -269,14 +287,9 @@ def create(request) -> HttpResponse:
 
                 # If there haven't been any errors, go ahead and compile the video
                 if not post_errors:
-                    # Get user info
-                    if session_is_logged_in(request.session):
-                        user = session_get_user(request.session)
-                    else:
-                        user = get_sql_handler().get_admin_user()
+                    # TODO gonna add more config stuff later
                     config = {'file_type': 'mp4'}
-
-                    make.delay(request.session.session_key, user.user_id, config)
+                    compile_video(request.session, config)
 
         else:
             context['enable_cookies'] = True
@@ -404,3 +417,18 @@ def video(request) -> HttpResponse:
         return HttpResponse(render(request, 'reels/video.html', context))
     else:
         return HttpResponse(render(request, 'reels/invalid.html', context))
+
+
+def stream(request) -> HttpResponseBase:
+    if request.method == 'POST':
+        if 'download_video' in request.POST:
+            video_id = request.POST['download_video']
+            vid = get_sql_handler().get_video(video_id)
+            if vid.session_key == request.session.session_key:
+                url = get_blob_stream_url(request.POST['download_video'], 'pegasus-videos')
+                r = requests.get(url, stream=True)
+                resp = StreamingHttpResponse(streaming_content=r)
+                resp['Content-Disposition'] = f'attachment; filename="reel-{datetime.utcnow()}.mp4"'
+                return resp
+    return HttpResponseRedirect('/create')
+

@@ -34,6 +34,9 @@ def _save_video_worker(local_path, video_id, clean):
 
 # Downloads a video to its local file location
 def download_video(video: Video, sync: bool = True) -> None:
+    if os.path.exists(video.local_file_path()):
+        return  # Already have this file in store
+
     if sync:
         download_from_blob(video.local_file_path(), video.video_id, VIDEO_CONTAINER_NAME)
     else:
@@ -42,8 +45,11 @@ def download_video(video: Video, sync: bool = True) -> None:
 
 # Deletes a video from blob storage and relational database
 def delete_video(video_id: str, sync: bool = True) -> None:
-    if get_sql_handler().get_video(video_id):
+    video = get_sql_handler().get_video(video_id)
+    if video:
         get_sql_handler().delete_video(video_id)
+        if os.path.exists(video.local_file_path()):
+            os.remove(video.local_file_path())
 
     if sync:
         delete_in_blob(video_id, VIDEO_CONTAINER_NAME)
@@ -78,7 +84,6 @@ def _save_session_clip_worker(local_path, clip_id, clean):
 
 # Downloads a clip to its local file location
 def download_session_clip(clip: SessionClip, sync: bool = True) -> None:
-
     if os.path.exists(clip.local_file_path()):
         return  # Already have this file in store
 
@@ -90,8 +95,11 @@ def download_session_clip(clip: SessionClip, sync: bool = True) -> None:
 
 # Deletes a clip from blob storage and relational database
 def delete_session_clip(clip_id: str, sync: bool = True) -> None:
-    if get_sql_handler().get_session_clip(clip_id):
+    session_clip = get_sql_handler().get_session_clip(clip_id)
+    if session_clip:
         get_sql_handler().delete_session_clip(clip_id)
+        if os.path.exists(session_clip.local_file_path()):
+            os.remove(session_clip.local_file_path())
 
     if sync:
         delete_in_blob(clip_id, CLIP_CONTAINER_NAME)
@@ -126,6 +134,9 @@ def _save_session_audio_worker(local_path, audio_id, clean):
 
 # Downloads audio to its local file location
 def download_session_audio(audio: SessionAudio, sync: bool = True) -> None:
+    if os.path.exists(audio.local_file_path()):
+        return  # Already have this file in store
+
     if sync:
         download_from_blob(audio.local_file_path(), audio.audio_id, AUDIO_CONTAINER_NAME)
     else:
@@ -134,8 +145,11 @@ def download_session_audio(audio: SessionAudio, sync: bool = True) -> None:
 
 # Deletes audio from blob storage and relational database
 def delete_session_audio(audio_id: str, sync: bool = True) -> None:
-    if get_sql_handler().get_session_audio(audio_id):
+    session_audio = get_sql_handler().get_session_audio(audio_id)
+    if session_audio:
         get_sql_handler().delete_session_audio(audio_id)
+        if os.path.exists(session_audio):
+            os.remove(session_audio.local_file_path())
 
     if sync:
         delete_in_blob(audio_id, AUDIO_CONTAINER_NAME)

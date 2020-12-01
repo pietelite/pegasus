@@ -3,6 +3,7 @@ from os import remove
 from os.path import join
 
 from celery.utils.log import get_task_logger
+from django.contrib.sessions.backends.base import SessionBase
 
 from pegasus.celery import app
 from pegasus.settings import MEDIA_ROOT
@@ -10,20 +11,32 @@ from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
+from .session import session_is_logged_in, session_get_user
 from .video import download_session_clip, download_session_audio, delete_session_clip, save_video, delete_session_audio
-from .models import Video
+from .models import Video, User
 from .sql.sql import get_sql_handler
 
 logger = get_task_logger(__name__)
 
 
+def compile_video(session: SessionBase, config: dict) -> None:
+    # Get user info
+    if session_is_logged_in(session):
+        user = session_get_user(session)
+    else:
+        user = get_sql_handler().get_admin_user()
+
+    video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config['file_type'])
+    get_sql_handler().insert_video(video=video)
+
+    _compile_worker.delay(session.session_key, video.video_id, config)
+
+
 @app.task(ignore_result=True)
-def make(session_key: str, user_id: str, config: dict) -> None:
+def _compile_worker(session_key: str, video_id: str, config: dict) -> None:
     # Save video to relational database (not available yet)
     if 'file_type' not in config:
         raise KeyError('make algorithm requires file_type in configuration')
-    video = Video(user_id=user_id, session_key=session_key, file_type=config['file_type'])
-    get_sql_handler().insert_video(video=video)
 
     session_clips = get_sql_handler().get_session_clips_by_session_key(session_key)
     for session_clip in session_clips:
@@ -41,6 +54,7 @@ def make(session_key: str, user_id: str, config: dict) -> None:
     final = concatenate_videoclips(clips, method="compose")
 
     # Add audio, only if there is audio
+    audio_clip = None
     if session_audio:
         audio_clip = AudioFileClip(session_audio.local_file_path())
         # Attach audio to video, but make it only as long as the videos are
@@ -50,16 +64,25 @@ def make(session_key: str, user_id: str, config: dict) -> None:
     # === Final Saving ===
 
     # Write file to local storage
-    final.write_videofile(join(MEDIA_ROOT, video.local_file_path()),
+    video = get_sql_handler().get_video(video_id)
+    final.write_videofile(filename=video.local_file_path(),
                           verbose=True,
                           codec="libx264",
                           audio_codec='aac',
-                          temp_audiofile='temp-audio-{}-{}.m4a'.format(session_key, video.video_id),
+                          temp_audiofile=f'temp-audio-{video.video_id}.m4a',
                           remove_temp=True,
                           preset="medium",
                           ffmpeg_params=["-profile:v", "baseline", "-level", "3.0", "-pix_fmt", "yuv420p"])
     # Save video to cold storage (and make video available in relational database)
-    save_video(video, clean=False)
+
+    # close files
+    for clip in clips:
+        clip.close()
+
+    if audio_clip:
+        audio_clip.close()
+
+    save_video(video, sync=True, clean=True)
 
     # Clean up remote session files
     for session_clip in session_clips:

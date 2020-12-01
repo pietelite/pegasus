@@ -196,6 +196,25 @@ body {
     color: inherit;
 }
 
+.inline-button {
+    float: right !important;
+}
+
+.inline-button button {
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+
+.inline-button i {
+    display: block;
+    margin: auto;
+    padding: 5px;
+    border-radius: 5px;
+    color: white;
+}
+
 .processing-element {
     color: var(--background-3);
 }

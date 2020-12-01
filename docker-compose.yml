@@ -13,11 +13,11 @@ services:
       - env.env
     ports:
       - "80:80"
-    volumes:
-      - server-data:/var/lib/server
     depends_on:
       - broker
       - db
+    volumes:
+      - media:/var/lib/media
     deploy:
       resources:
         limits:
@@ -31,10 +31,10 @@ services:
     env_file:
       - env.env
     command: celery -A pegasus worker -l info
-    volumes:
-      - server-data:/var/lib/server
     depends_on:
       - broker
+    volumes:
+      - media:/var/lib/media
     deploy:
       resources:
         limits:
@@ -105,6 +105,6 @@ services:
           memory: 1G
 
 volumes:
-  server-data:
+  media:
   db-data:
   pgadmin-data:

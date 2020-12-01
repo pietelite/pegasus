@@ -65,7 +65,7 @@ def upload_session_clips(session_key: str, files: List[File]) -> List[SessionCli
 
     # Upload from buffer media location to blob storage
     for session_clip in session_clips:
-        save_session_clip(session_clip, sync=False)
+        save_session_clip(clip=session_clip, sync=False, clean=True)
 
     return session_clips
 
@@ -80,7 +80,7 @@ def upload_session_audio(session_key: str, file: File) -> SessionAudio:
     session_audio = SessionAudio(file.name, session_key)
     _upload_file(file, session_audio.local_file_path())
 
-    save_session_audio(session_audio, sync=False)
+    save_session_audio(audio=session_audio, sync=False, clean=True)
 
     return session_audio
 
