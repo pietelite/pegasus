@@ -9,35 +9,75 @@
 {% endblock %}
 
 {% block content %}
+
+{% if unavailable_video %}
+<div class="container title">
+    <div style="text-align: center;">
+        <h1>&#128293; Your Reel is compiling &#128293;</h1>
+    </div>
+</div>
+<div class="container">
+    {% if user_data %}
+    <p>You will be able to view your video in your <a href="/myvideos">My Videos</a> page</p>
+    {% else %}
+    <p>You're not logged in, so we'll only keep your video for a few days!</p>
+    <p>Next time, make sure to <a href="/register">Register</a> and <a href="/login">Log In</a>.</p>
+    {% endif %}
+</div>
+{% endif %}
+
 {% if compiled_videos %}
 <div class="container title">
     <h1>Your Reels</h1>
     {% for compiled_video in compiled_videos %}
-    <p>{{ compiled_video.video_id }}</p>
+    <div class="video-item">
+        <ul class="horizontal-list">
+            <li><span>{{ compiled_video.created_formatted }}</span></li>
+            {% if not compiled_video.available %}
+            <li style="float: right"><div class="processing-element"></div></li>
+            {% endif %}
+            {% if compiled_video.local_url %}
+            <li style="float: right"><a href="{{ compiled_video.local_url }}"
+                                        style="background-color:
+                                                var(--background-3);
+                                                padding: 5px;
+                                                color: #E0E0E0;
+                                                font-size: 20px;
+                                                border-radius: 10px;"
+                                        download="reel">Download</a></li>
+            {% endif %}
+        </ul>
+    </div>
     {% endfor %}
 </div>
 {% endif %}
+
+{% if not unavailable_video %}
 <div class="container title">
     <h1>Create a Reel</h1>
 </div>
 {% if post_errors %}
 <div class="container">
     {% for error in post_errors %}
-    <div class="error-message">
-        {{ error }}
+    <div class="note error">
+        <ul class="horizontal-list">
+            <li><i class="material-icons">warning</i></li>
+            <li><span>{{ error }}</span></li>
+        </ul>
     </div>
     {% endfor %}
 </div>
 {% endif %}
 <div class="container">
     <h3>Uploaded Clips</h3>
-    <div class="uploaded">
-        {% if not session_clips %}
+    {% if not session_clips %}
+    <div class="uploaded" style="padding: 10px">
         <span>You haven't uploaded any clips yet &#128542;</span>
-        {% endif %}
-
-        {% for session_clip in session_clips %}
-        <ul>
+    </div>
+    {% endif %}
+    {% for session_clip in session_clips %}
+    <div class="uploaded">
+        <ul class="horizontal-list">
             <li><span>{{ session_clip.file_name }}</span></li>
             {% if not session_clip.available %}
             <li><div class="processing-element"></div></li>
@@ -51,9 +91,8 @@
                 </form>
             </li>
         </ul>
-        <br>
-        {% endfor %}
     </div>
+    {% endfor %}
     <div id="upload-video">
         <form action="/create" class="upload-form" id="upload_video_form" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
@@ -64,15 +103,36 @@
         <!--        </button>-->
     </div>
 </div>
-<div class="container">
-    <h3>Upload Music (Optional)</h3>
+<div class="container refresh">
+    <h3>Upload Music</h3>
+    {% if session_audio %}
     <div class="uploaded">
-        {% if session_audio %}
-        <span>{{ session_audio.file_name }}</span>
-        {% else %}
-        <span>You haven't uploaded your cool song &#128557;</span>
-        {% endif %}
+        <ul class="horizontal-list">
+            <li><span>{{ session_audio.file_name }}</span></li>
+            {% if not session_audio.available %}
+            <li><div class="processing-element"></div></li>
+            {% endif %}
+            <li class="delete-button">
+                <form action="/create" method="POST">
+                    {% csrf_token %}
+                    <button name="delete_audio" value="{{ session_audio.audio_id }}">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </form>
+            </li>
+        </ul>
     </div>
+    {% else %}
+    <div class="uploaded">
+        <span>You haven't uploaded your cool song &#128557;</span>
+    </div>
+    <div class="note info">
+        <ul class="horizontal-list">
+            <li><i class="material-icons">info</i></li>
+            <li><span>If you don't upload anything, we'll just use the audio in your videos!</span></li>
+        </ul>
+    </div>
+    {% endif %}
     <div id="upload-audio">
         <form action="/create" class="upload-form" id="upload_audio_form" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
@@ -84,8 +144,13 @@
     </div>
 </div>
 <div id="config-container" class="container">
-    <h3>Configuration</h3>
-    <span>You can't configure anything yet &#128556, but stay tuned for updates!</span>
+    <h3>Edit</h3>
+    <div class="note info">
+        <ul class="horizontal-list">
+            <li><i class="material-icons">info</i></li>
+            <li><span>You can't configure anything yet &#128556, but stay tuned for updates!</span></li>
+        </ul>
+    </div>
     <form id="config-form" action="/create" method="POST">
         {% csrf_token %}
         <!-- All elements here will be automatically generated in config-panel with proper UI -->
@@ -93,14 +158,15 @@
     <div id="config-panel">
         <!-- This is where config elements will be generated dynamically with JS -->
     </div>
-</div>
-<div id="submit-container" class="container">
+    <br>
     <button class="reels-button" name="compile"
-            value="create"
+            value="compile"
             style="display: block; margin-left: auto; margin-right: auto;"
             onclick="document.getElementById('config-form').submit();">Create!
     </button>
 </div>
+{% endif %} <!-- if compiled_video -->
+
 {% endblock %}
 
 {% block tail %}

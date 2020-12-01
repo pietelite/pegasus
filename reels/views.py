@@ -1,20 +1,16 @@
 import time
 
-from django.contrib.sessions.backends.base import SessionBase
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
-from django.utils.encoding import smart_str
-from emoji import Emoji
 
-from .azure.blob import delete_clip_in_blob
 from .config import SUPPORTED_VIDEO_TYPES, SUPPORTED_AUDIO_TYPES
-from .models import User, Post
-from .session import upload_session_clips, session_login, update_session_in_context, session_logout, \
+from .models import Post
+from .session import session_login, update_session_in_context, session_logout, \
     upload_session_audio
-from .tasks import make
+from .tasks import make, delete_session_clip, delete_session_audio
 from .models import User
-from .session import upload_session_clips, get_session_clips, session_is_logged_in, session_get_user
-from .util import is_file_type, is_file_supported
+from .session import upload_session_clips, session_is_logged_in, session_get_user
+from .util import is_file_supported
 from .validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
 from .recover import send_recovery_email
@@ -125,7 +121,9 @@ def register(request) -> HttpResponse:
             request.session.set_test_cookie()
             return HttpResponse(render(request, 'reels/register.html', context))
         else:
-            get_sql_handler().insert_user(User(request.POST['username'], request.POST['password'], request.POST['email']))
+            get_sql_handler().insert_user(User(request.POST['username'],
+                                               request.POST['password'],
+                                               request.POST['email']))
 
             update_session_in_context(context, request.session)
             return HttpResponse(render(request, 'reels/registered.html', context))
@@ -190,31 +188,38 @@ def profile(request) -> HttpResponse:
 def create(request) -> HttpResponse:
     context = {}
     update_session_in_context(context, request.session)
+    post_errors = []
 
     if request.method == 'GET':
-
-        # Put all compiled videos at the top for the user
-        compiled_videos = get_sql_handler().get_videos_by_session_key(request.session.session_key)
-        context['compiled_videos'] = [vid.contextualize() for vid in compiled_videos]
+        pass  # Nothing needed here
 
     elif request.method == 'POST':
         if request.session.test_cookie_worked():
             request.session.delete_test_cookie()
-            context['post_errors'] = []
             if 'delete_clip' in request.POST:
-                print("Found!")
                 delete_clip_id = request.POST['delete_clip']
                 session_clip = get_sql_handler().get_session_clip(delete_clip_id)
                 if session_clip:
                     if session_clip.session_key == request.session.session_key:
-                        get_sql_handler().delete_session_clip(session_clip.clip_id)
-                        delete_clip_in_blob.delay(session_clip.clip_id)
+                        delete_session_clip(session_clip.clip_id, sync=True)
                     else:
-                        context['post_errors'].append('You tried to delete a clip that doesn\'t belong to you!')
+                        post_errors.append('You tried to delete a clip that doesn\'t belong to you!')
                 else:
-                    context['post_errors'].append('We can\'t find that clip')
+                    post_errors.append('We can\'t find that clip')
 
-            if request.FILES:
+            elif 'delete_audio' in request.POST:
+                delete_audio_id = request.POST['delete_audio']
+                session_audio = get_sql_handler().get_session_audio(delete_audio_id)
+                if session_audio:
+                    if session_audio.session_key == request.session.session_key:
+                        get_sql_handler().delete_session_audio(session_audio.audio_id)
+                        delete_session_audio(session_audio.audio_id, sync=True)
+                    else:
+                        post_errors.append('You tried to delete audio that doesn\'t belong to you!')
+                else:
+                    post_errors.append('We can\'t find that audio file')
+
+            elif request.FILES:
                 # === User is uploading files ===
 
                 # Check for video files
@@ -225,9 +230,9 @@ def create(request) -> HttpResponse:
                         video_files.append(file)
                     else:
                         unsupported_file = True
-                        context['post_errors'].append(f'File f{file.name} could not be added')
+                        post_errors.append(f'File f{file.name} could not be added')
                 if unsupported_file:
-                    context['post_errors'].append(
+                    post_errors.append(
                         f'At the moment, we can only support '
                         f'the following video types: {",".join(SUPPORTED_VIDEO_TYPES)}')
 
@@ -240,31 +245,50 @@ def create(request) -> HttpResponse:
                     if is_file_supported(file.name, SUPPORTED_AUDIO_TYPES):
                         upload_session_audio(request.session.session_key, request.FILES['audio_file'])
                     else:
-                        context['post_errors'].append(f'File f{file.name} could not be added')
-                        context['post_errors'].append(
+                        post_errors.append(f'File f{file.name} could not be added')
+                        post_errors.append(
                             f'At the moment, we can only support '
                             f'the following video types: {",".join(SUPPORTED_VIDEO_TYPES)}')
 
-            if 'compile' in request.POST:
+            else:
                 # === User is compiling ===
-                if get_session_clips(request.session.session_key):
+                session_clips = get_sql_handler().get_session_clips_by_session_key(request.session.session_key)
+                session_audio = get_sql_handler().get_session_audio_by_session_key(request.session.session_key)
+                if not session_clips:
+                    post_errors.append(f'You need to upload your clips first!')
+
+                unavailable_files = False
+                for session_clip in session_clips:
+                    if not session_clip.available:
+                        unavailable_files = True
+                for session_aud in session_audio:
+                    if not session_aud.available:
+                        unavailable_files = True
+                if unavailable_files:
+                    post_errors.append(f'Some files are still processing!')
+
+                # If there haven't been any errors, go ahead and compile the video
+                if not post_errors:
                     # Get user info
                     if session_is_logged_in(request.session):
                         user = session_get_user(request.session)
                     else:
                         user = get_sql_handler().get_admin_user()
                     config = {'file_type': 'mp4'}
+
                     make.delay(request.session.session_key, user.user_id, config)
-                else:
-                    context['post_errors'].append(f'You need to upload your clips first!')
+
         else:
             context['enable_cookies'] = True
+
     else:
         return _error_response(request, context)
 
+    context['post_errors'] = post_errors
     update_session_in_context(context, request.session)
     request.session.set_test_cookie()
     return HttpResponse(render(request, 'reels/create.html', context))
+
 
 # Handles requests to create or edit a post
 def post_creation(request) -> HttpResponse:
@@ -283,7 +307,9 @@ def post_creation(request) -> HttpResponse:
         elif bool(request.POST.get('create_post')):
             if request.POST.get('post_id'):
                 # editing post
-                get_sql_handler().update_post(request.POST['post_id'], request.POST['title'], request.POST['description'])
+                get_sql_handler().update_post(request.POST['post_id'],
+                                              request.POST['title'],
+                                              request.POST['description'])
             else:
                 # creating new post
                 post = Post('828743f41ded11ebad0f7c67a220d1e4', request.POST['title'], request.POST['description'])

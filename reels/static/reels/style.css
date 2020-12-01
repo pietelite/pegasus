@@ -31,6 +31,19 @@ p,span {
     font-family: 'Noto Sans KR', sans-serif;
 }
 
+span a, p a {
+    background: var(--secondary-theme);
+    border-radius: 5px;
+    padding: 0em 0.4em 0.1em 0.4em;
+    color: #E0E0E0;
+}
+
+span a:hover, p a:hover {
+    background: var(--background-2);
+    color: #E0E0E0;
+    text-decoration: none;
+}
+
 /* Navbar */
 #navbar {
     position: fixed;
@@ -42,15 +55,7 @@ p,span {
 }
 
 #navbar ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
     background-color: var(--primary-theme);
-}
-
-#navbar li {
-    float: left;
 }
 
 #navbar li a {
@@ -151,6 +156,21 @@ body {
     text-align: center
 }
 
+.horizontal-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.horizontal-list li {
+    float: left;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10px;
+}
+
 .reels-button {
     background-color: var(--secondary-theme);
     border-color: transparent;
@@ -158,6 +178,7 @@ body {
     border-radius: 10px;
     color: #E0E0E0;
     padding: 10px;
+    margin: 15px 0 15px 0;
     box-shadow: 0 0 10px black;
     min-width: 100px;
 }
@@ -175,8 +196,27 @@ body {
     color: inherit;
 }
 
+.processing-element {
+    color: var(--background-3);
+}
+
 /* Text */
 
 h1 {
     font-size: 32px;
+}
+
+.note {
+    border-radius: 5px;
+    width: 100%;
+    padding: 8px;
+    margin: 10px 0 10px 0;
+}
+
+.info {
+    background-color: #fffac4;
+}
+
+.error {
+    background-color: #e36262;
 }

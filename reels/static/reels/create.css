@@ -1,3 +1,16 @@
+.video-item {
+    background-color: var(--secondary-theme);
+    color: #E0E0E0;
+    font-size: 24px;
+    border-radius: 5px;
+    margin: 30px;
+    padding: 10px;
+}
+
+.video-item .processing-element {
+    color: var(--background-1);
+}
+
 .uploaded {
     background-color: var(--background-2);
     color: white;
@@ -6,15 +19,7 @@
     padding: 10px;
 }
 
-.uploaded ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-}
-
 .uploaded li {
-    float: left;
     padding: 0 20px 0 20px;
 }
 

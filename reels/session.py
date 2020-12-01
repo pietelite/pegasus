@@ -1,16 +1,10 @@
-import re
-from os.path import join
-from typing import Union, List, Optional
+from typing import List, Optional
 
 from django.contrib.sessions.backends.base import SessionBase
 from django.core.files import File
-from django.core.files.storage import get_storage_class
 
-from pegasus.settings import MEDIA_URL, MEDIA_ROOT
-from reels.azure.blob import save_clip_to_blob, save_audio_to_blob, delete_clip_in_blob, delete_audio_in_blob
 from reels.models import User, SessionClip, SessionAudio
-import time
-from os import listdir, remove
+from reels.video import save_session_clip, save_session_audio, delete_session_audio
 
 # === Users ===
 
@@ -39,18 +33,15 @@ def session_get_user(session: SessionBase) -> User:
                 d['created'], d['last_online'], d['verified'])
 
 
-def update_session_in_context(context: dict, session: SessionBase) -> dict:
+def update_session_in_context(context: dict, session: SessionBase) -> None:
     context['user_data'] = {}
     if session_is_logged_in(session):
         context['user_data'] = session['user_data']
-    context['session_clips'] = [{
-        'file_name': clip.file_name,
-        'clip_id': clip.clip_id,
-        'available': clip.available
-    } for clip in get_session_clips(session.session_key)]
-    session_audio = get_session_audio(session.session_key)
-    if session_audio:
-        context['session_audio'] = {'file_name': session_audio.file_name}
+
+    context['session_clips'] = get_sql_handler().get_session_clips_by_session_key(session.session_key)
+    context['session_audio'] = get_session_audio(session.session_key)
+    context['compiled_videos'] = get_sql_handler().get_videos_by_session_key(session.session_key)
+    context['unavailable_video'] = bool([vid for vid in context['compiled_videos'] if not vid.available])
 
 
 # === Uploading ===
@@ -68,22 +59,15 @@ def upload_session_clips(session_key: str, files: List[File]) -> List[SessionCli
     # Upload buffers
     for i in range(len(files)):
         session_clip = SessionClip(files[i].name, session_key, config={})
-        _upload_file(files[i], session_clip.temp_file_path())
-        print(f"Uploaded to {session_clip.temp_file_path()}")
+        _upload_file(files[i], session_clip.local_file_path())
+        print(f"Uploaded to {session_clip.local_file_path()}")
         session_clips.append(session_clip)
 
-    for clip in session_clips:
-        get_sql_handler().insert_session_clip(clip)
-
     # Upload from buffer media location to blob storage
-    for clip in session_clips:
-        save_clip_to_blob.delay(clip.temp_file_path(), clip.clip_id)
+    for session_clip in session_clips:
+        save_session_clip(session_clip, sync=False)
+
     return session_clips
-
-
-# Gets a list of SessionClips associated with a session
-def get_session_clips(session_key: str) -> List[SessionClip]:
-    return get_sql_handler().get_session_clips_by_session_key(session_key)
 
 
 # Uploads an audio file
@@ -91,14 +75,13 @@ def upload_session_audio(session_key: str, file: File) -> SessionAudio:
     # Delete a audio if it exists already
     session_audio = get_session_audio(session_key)
     if session_audio:
-        delete_audio_in_blob.delay(session_audio.audio_id)
-        get_sql_handler().delete_session_audio(session_audio.audio_id)
+        delete_session_audio(session_audio.audio_id, sync=True)
     # Upload new audio
     session_audio = SessionAudio(file.name, session_key)
-    _upload_file(file, session_audio.temp_file_path())
-    get_sql_handler().insert_session_audio(session_audio)
-    save_audio_to_blob.delay(session_audio.temp_file_path(), session_audio.audio_id)
-    remove(session_audio.temp_file_path())
+    _upload_file(file, session_audio.local_file_path())
+
+    save_session_audio(session_audio, sync=False)
+
     return session_audio
 
 
@@ -108,16 +91,3 @@ def get_session_audio(session_key: str) -> Optional[SessionAudio]:
         return get_sql_handler().get_session_audio_by_session_key(session_key)[0]
     except IndexError:
         return None
-
-
-# Get rid of all data from uploaded content
-def clear_session_uploads(session_key: str) -> None:
-    session_clips = get_session_clips(session_key)
-    for session_clip in session_clips:
-        delete_clip_in_blob(session_clip.clip_id, sync=False)
-        get_sql_handler().delete_session_clip(session_clip.clip_id)
-
-    session_audio = get_session_audio(session_key)
-    if session_audio:
-        delete_audio_in_blob(session_audio.audio_id, sync=False)
-        get_sql_handler().delete_session_audio(session_audio.audio_id)

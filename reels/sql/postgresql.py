@@ -156,7 +156,7 @@ CREATE TRIGGER update_post_trigger_delete
     def insert_user(self, user: User) -> None:
         with connection.cursor() as cursor:
             query = "INSERT INTO users " \
-                    "(user_id, user_name, password, email, created, last_online) " \
+                    "(user_id, user_name, password, email, created, last_online, verified) " \
                     "VALUES (" \
                     f"'{user.user_id}', " \
                     f"'{user.user_name}', " \
@@ -164,21 +164,20 @@ CREATE TRIGGER update_post_trigger_delete
                     f"'{user.email}', " \
                     f"{int(user.created)}, " \
                     f"{int(user.last_online)}, " \
-                    "'0')"
+                    f"'{int(user.verified)}'" \
+                    ")"
             cursor.execute(query)
 
     @overrides
     def update_user(self, user: User):
         with connection.cursor() as cursor:
-            query = f"UPDATE users " \
-                    f"(" \
+            query = f"UPDATE users SET " \
                     f"user_name = '{user.user_name}'" \
                     f"password = '{user.password}', " \
                     f"email = '{user.email}', " \
                     f"created = '{int(user.created)}', " \
                     f"last_online = '{int(user.last_online)}', " \
-                    f"verified = '{int(user.verified)}'" \
-                    f" " \
+                    f"verified = '{int(user.verified)}' " \
                     f"WHERE user_id = '{user.user_id}'"
             cursor.execute(query)
 
@@ -212,7 +211,7 @@ CREATE TRIGGER update_post_trigger_delete
                         email=row[3],
                         created=row[4],
                         last_online=row[5],
-                        verified=row[6])
+                        verified=bool(int(row[6])))
         return None
 
     # Gets a User object from data from the database using either the username or email
@@ -238,7 +237,7 @@ CREATE TRIGGER update_post_trigger_delete
                         email=row[3],
                         created=row[4],
                         last_online=row[5],
-                        verified=row[6])
+                        verified=bool(int(row[6])))
         return None
 
     # === VIDEOS AND TAGS ===
@@ -261,15 +260,13 @@ CREATE TRIGGER update_post_trigger_delete
     @overrides
     def update_video(self, video: Video):
         with connection.cursor() as cursor:
-            query = f"UPDATE videos " \
-                    f"(" \
+            query = f"UPDATE videos SET " \
                     f"user_id = '{video.user_id}', " \
-                    f"session_key = '{video.session_key}'" \
+                    f"session_key = '{video.session_key}', " \
                     f"file_type = '{video.file_type}', " \
                     f"config = '{video.config}', " \
                     f"created = '{video.created}', " \
-                    f"available = '{int(video.available)}', " \
-                    f") " \
+                    f"available = '{int(video.available)}' " \
                     f"WHERE video_id = '{video.video_id}'"
             cursor.execute(query)
 
@@ -304,7 +301,7 @@ CREATE TRIGGER update_post_trigger_delete
                          video_id=row[3],
                          config=row[4],
                          created=row[5],
-                         available=bool(row[6]))
+                         available=bool(int(row[6])))
         return None
 
     @overrides
@@ -329,7 +326,7 @@ CREATE TRIGGER update_post_trigger_delete
                       video_id=row[3],
                       config=row[4],
                       created=row[5],
-                      available=bool(row[6])) for row in rows]
+                      available=bool(int(row[6]))) for row in rows]
 
     @overrides
     def get_videos_by_session_key(self, session_key: str) -> List[Video]:
@@ -353,7 +350,7 @@ CREATE TRIGGER update_post_trigger_delete
                       video_id=row[3],
                       config=row[4],
                       created=row[5],
-                      available=bool(row[6])) for row in rows]
+                      available=bool(int(row[6]))) for row in rows]
 
     # === SESSION ===
 
@@ -368,6 +365,17 @@ CREATE TRIGGER update_post_trigger_delete
                     f"'{clip.session_key}', " \
                     f"'{clip.file_name}', " \
                     f"'{clip.config}')"
+            cursor.execute(query)
+
+    @overrides
+    def update_session_clip(self, clip: SessionClip) -> None:
+        with connection.cursor() as cursor:
+            query = f"UPDATE sessionclips SET " \
+                    f"session_key = '{clip.session_key}', " \
+                    f"file_name = '{clip.file_name}', " \
+                    f"config = '{clip.config}', " \
+                    f"available = '{int(clip.available)}' " \
+                    f"WHERE clip_id = '{clip.clip_id}'"
             cursor.execute(query)
 
     # Deletes clip information from relational database. This does not do anything with the actual clip.
@@ -403,7 +411,7 @@ CREATE TRIGGER update_post_trigger_delete
                                session_key=row[1],
                                file_name=row[2],
                                config=row[3],
-                               available=bool(row[4]))
+                               available=bool(int(row[4])))
         return None
 
     # Gets all session clip information from a single session id
@@ -424,7 +432,7 @@ CREATE TRIGGER update_post_trigger_delete
                             session_key=row[1],
                             file_name=row[2],
                             config=row[3],
-                            available=bool(row[4])) for row in rows]
+                            available=bool(int(row[4]))) for row in rows]
 
     # Inserts a clip uploaded from a session. This does not do anything with the actual clip.
     @overrides
@@ -437,6 +445,17 @@ CREATE TRIGGER update_post_trigger_delete
                     f"'{audio.session_key}', " \
                     f"'{audio.file_name}', " \
                     f"'{audio.config}')"
+            cursor.execute(query)
+
+    @overrides
+    def update_session_audio(self, audio: SessionAudio) -> None:
+        with connection.cursor() as cursor:
+            query = f"UPDATE sessionaudio SET " \
+                    f"session_key = '{audio.session_key}', " \
+                    f"file_name = '{audio.file_name}', " \
+                    f"config = '{audio.config}', " \
+                    f"available = '{int(audio.available)}' " \
+                    f"WHERE audio_id = '{audio.audio_id}'"
             cursor.execute(query)
 
     # Deletes clip information from relational database. This does not do anything with the actual clip.
@@ -472,7 +491,7 @@ CREATE TRIGGER update_post_trigger_delete
                                 session_key=row[1],
                                 file_name=row[2],
                                 config=row[3],
-                                available=row[4])
+                                available=bool(int(row[4])))
         return None
 
     # Gets all session clip information from a single session id
@@ -493,7 +512,7 @@ CREATE TRIGGER update_post_trigger_delete
                              session_key=row[1],
                              file_name=row[2],
                              config=row[3],
-                             available=row[4]) for row in rows]
+                             available=bool(int(row[4]))) for row in rows]
 
     # === POSTS, TAGS, AND LIKES ===
 

@@ -84,7 +84,6 @@ for (form of document.getElementsByClassName("upload-form")) {
     for (child of form.childNodes) {
         if (child.tagName && child.tagName.toLowerCase() == "input") {
             if (child.type == "file") {
-                console.log(child)
                 button = document.createElement("button");
 
                 /* Generate ID to be used for finding correct input later */
@@ -123,7 +122,7 @@ var createProcessingElements = () => {
 
     const elements = [];
 
-    const dom = Object.entries(content).reduce((fragment, [type, text]) => {
+    var dom = () => Object.entries(content).reduce((fragment, [type, text]) => {
       const node = text.split("").reduce((element, character) => {
         const span = document.createElement("span");
         span.textContent = character;
@@ -139,14 +138,14 @@ var createProcessingElements = () => {
 
     var processingElement;
     for (processingElement of processingElements) {
-        processingElement.appendChild(dom);
+        processingElement.appendChild(dom());
     }
 
     const animateProcessing = async () => {
       await animate({
         elements,
-        duration: 500,
-        delay: index => index * 20,
+        duration: 200,
+        delay: index => index * 5,
         easing: "out-cubic",
         transform: ["translate(0px, 0px)", "0 -5"]
       });
@@ -155,7 +154,7 @@ var createProcessingElements = () => {
         elements,
         duration: 1000,
         delay: index => index * 10,
-        easing: "out-elastic 3 0.3",
+        easing: "out-elastic 2 0.3",
         transform: ["translate(0px, -5px)", "0 0"]
       });
 

@@ -105,7 +105,7 @@ DATABASES = {
         'NAME': os.environ['POSTGRES_DB'],
         'USER': os.environ['POSTGRES_USER'],
         'PASSWORD': os.environ['POSTGRES_PASSWORD'],
-        'HOST': 'localhost' if DEV else 'db',
+        'HOST': 'localhost' if DEV else os.getenv('REMOTE_IP', default='db'),
         'PORT': 5432,
     },
     # 'mssql': {
@@ -191,7 +191,7 @@ CELERY_TASK_TIME_LIMIT = 60 * 60  # Is this 60 minutes?
 BROKER_URL = f'amqp://' \
              f'{os.environ["RABBITMQ_DEFAULT_USER"]}:' \
              f'{os.environ["RABBITMQ_DEFAULT_PASS"]}@' \
-             f'{"localhost" if DEV else "broker"}:' \
+             f'{"localhost" if DEV else os.getenv("REMOTE_IP", default="broker")}:' \
              f'5672/' \
              f'{os.environ["RABBITMQ_DEFAULT_VHOST"]}'
 CELERY_ACCEPT_CONTENT = ['application/json']
