@@ -22,7 +22,8 @@ def compile_video(session: SessionBase, config: dict) -> None:
     else:
         user = get_sql_handler().get_admin_user()
 
-    video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config['file_type'])
+    # Save video to relational database (not available yet)
+    video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config.get('file_type', default='mp4'))
     get_sql_handler().insert_video(video=video)
     get_nosql_handler().insert_video_config(video.video_id, config)
 
@@ -30,10 +31,10 @@ def compile_video(session: SessionBase, config: dict) -> None:
 
 
 @app.task(ignore_result=True)
-def _compile_worker(session_key: str, video_id: str, config: dict) -> None:
-    # Save video to relational database (not available yet)
-    if 'file_type' not in config:
-        raise KeyError('make algorithm requires file_type in configuration')
+def _compile_worker(session_key: str, video_id: str) -> None:
+
+    # Use this for conditional creation
+    config = get_nosql_handler().get_video_config(video_id)
 
     session_clips = get_sql_handler().get_session_clips_by_session_key(session_key)
     for session_clip in session_clips:
@@ -72,7 +73,7 @@ def _compile_worker(session_key: str, video_id: str, config: dict) -> None:
                           ffmpeg_params=["-profile:v", "baseline", "-level", "3.0", "-pix_fmt", "yuv420p"])
     # Save video to cold storage (and make video available in relational database)
 
-    # close files
+    # close local files because we don't need them anymore and so they can be removed later
     for clip in clips:
         clip.close()
 
