@@ -12,7 +12,7 @@ PASSWORD_LENGTH_MIN = 6
 PASSWORD_REGEX = r'^[0-9a-zA-Z!@#\$%\^&\*\(\)\[\]\{\},\./<>\?]*$'
 
 SUPPORTED_VIDEO_TYPES = ['mp4']
-SUPPORTED_AUDIO_TYPES = ['mp3']
+SUPPORTED_AUDIO_TYPES = ['mp3', 'wav']
 
 # the maximum length for a username (inclusive)
 USERNAME_LENGTH_MAX = 20

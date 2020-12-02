@@ -30,3 +30,22 @@
     1. run `python manage.py runserver`
 1. Open shell window (WSL) to run server worker for serving compilation requests
     1. run `celery -A pegasus worker -l info`
+    
+## Compilation Config Options
+
+- file_type: str
+- gamertag: str 
+- gamertag_position: list(str, str)
+- logo_position: list(str, str)
+- audio_start: int
+- audio_end: int
+- extras: bool
+
+Example:
+```json
+{ 
+    "file_type": "mp4",
+    "logo_position": ["left", "bottom"],
+    "extras": true
+}
+```

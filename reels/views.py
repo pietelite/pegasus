@@ -265,7 +265,7 @@ def create(request) -> HttpResponse:
                         post_errors.append(f'File f{file.name} could not be added')
                         post_errors.append(
                             f'At the moment, we can only support '
-                            f'the following video types: {",".join(SUPPORTED_VIDEO_TYPES)}')
+                            f'the following audio types: {",".join(SUPPORTED_AUDIO_TYPES)}')
 
             else:
                 # === User is compiling ===
