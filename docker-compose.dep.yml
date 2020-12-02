@@ -22,9 +22,9 @@ volumes:
       share_name: mongoexpressshare
       storage_account_name: pegasuspietelitestorage
 
-networks:
-  pegasus-net:
-    driver: azure-vnet
-    driver_opts:
-      ipam-driver: azure-vnet
-      subnet: pegasusacisubnet
+#networks:
+#  pegasus-net:
+##    driver: azure-vnet
+##    driver_opts:
+##      ipam-driver: azure-vnet
+##      subnet: pegasusacisubnet

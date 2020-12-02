@@ -1,6 +1,8 @@
-
 from celery.utils.log import get_task_logger
 from django.contrib.sessions.backends.base import SessionBase
+from moviepy.video.VideoClip import ImageClip
+from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
+from moviepy.video.fx.resize import resize
 
 from pegasus.celery import app
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -32,7 +34,6 @@ def compile_video(session: SessionBase, config: dict) -> None:
 
 @app.task(ignore_result=True)
 def _compile_worker(session_key: str, video_id: str) -> None:
-
     # Use this for conditional creation
     config = get_nosql_handler().get_video_config(video_id)
 
@@ -47,40 +48,37 @@ def _compile_worker(session_key: str, video_id: str) -> None:
 
     # Create VideoFileClips
     clips = [VideoFileClip(session_clip.local_file_path()) for session_clip in session_clips]
+    total_duration = sum([clip.duration for clip in clips])
 
-    # Concatenate videos
-    final = concatenate_videoclips(clips, method="compose")
+    # Make all clips the same size
+    final_w = min([clip.w for clip in clips])
+    final_h = min([clip.h for clip in clips])
+    clips = [resize(clip, newsize=(final_w, final_h)) for clip in clips]
 
     # Adding gamertag and logo to the video
-    gamertag = ''
-    gamertag_position = ''
-    logo_position = ''
-    text_clip = None
-    logo_clip = None
-    if 'gamertag' in config:
-        gamertag = config['gamertag']
-        gamertag_position = ['right','bottom']
-    if 'logo_position' in config:
-        if logo_position == ['right','bottom']:
-            logo_position = ['left','bottom']
-        else:
-            logo_position = config['logo_position']
-    else:
-        logo_position = ['left','bottom']
+    gamertag = config.get('gamertag', '')
+    gamertag_position = config.get('gamertag_position', ['right', 'bottom'])
 
     # if gamertag != '':
-    #     text_clip = TextClip(txt='@'+gamertag, fontsize=50, font = 'Comfortaa', color='white')
-    #     text_clip = text_clip.set_duration(final.duration)
+    #     gamertag_clip = TextClip(txt='@'+gamertag, fontsize=50, font = 'Comfortaa', color='white')
+    #     gamertag_clip = text_clip.set_duration(final.duration)
     #                         .margin(right=8,top = 8, left=8, bottom=8, opacity=0)
     #                         .set_position((gamertag_position[0], gamertag_position[1]))
-    logo_clip = (ImageClip('static/reels/reels-logo-white.png')
-                .set_duration(final.duration)
-                .resize(height=300) 
-                .margin(right,=8, top = 8, left=8, bottom=8, opacity=0) 
-                .set_pos((logo_position[0],logo_position[1])))
 
-    # Combine logo, text, and videos    
-    final = CompositeVideoClip([final,logo,text])
+    # === WATERMARK ===
+    logo_position = config.get('logo_position', ['left', 'bottom'])
+    logo_clip = ImageClip('./static/reels/reels-logo-white.png')
+    logo_clip = resize(logo_clip, height=final_h/5)
+    try:
+        logo_x = (0 if logo_position[0] == 'left' else final_w - logo_clip.w)
+        logo_y = (0 if logo_position[1] == 'right' else final_h - logo_clip.h)
+    except (KeyError, TypeError):
+        logo_x, logo_y = 0, final_h - logo_clip.h
+    logo_clip = logo_clip.set_pos((logo_x, logo_y))
+    clips = [CompositeVideoClip([clip, logo_clip.set_duration(clip.duration)]) for clip in clips]
+
+    # Concatenate clips
+    final = concatenate_videoclips(clips, method="compose")
 
     # Add audio, only if there is audio
     audio_clip = None
@@ -91,8 +89,6 @@ def _compile_worker(session_key: str, video_id: str) -> None:
         final = final.set_audio(audio_clip.set_duration(final.duration))
 
     # === Final Saving ===
-
-    # Write file to local storage
     video = get_sql_handler().get_video(video_id)
     final.write_videofile(filename=video.local_file_path(),
                           verbose=True,
@@ -102,20 +98,19 @@ def _compile_worker(session_key: str, video_id: str) -> None:
                           remove_temp=True,
                           preset="medium",
                           ffmpeg_params=["-profile:v", "baseline", "-level", "3.0", "-pix_fmt", "yuv420p"])
-    # Save video to cold storage (and make video available in relational database)
-
     # close local files because we don't need them anymore and so they can be removed later
     for clip in clips:
         clip.close()
 
     if audio_clip:
         audio_clip.close()
-
+    # upload to cold storage
     save_video(video, sync=True, clean=True)
 
-    # Clean up remote session files
-    for session_clip in session_clips:
-        delete_session_clip(session_clip.clip_id)
-
-    if session_audio:
-        delete_session_audio(session_audio.audio_id)
+    # Skip for now so we can see the entries
+    # # Clean up remote session files
+    # for session_clip in session_clips:
+    #     delete_session_clip(session_clip.clip_id)
+    #
+    # if session_audio:
+    #     delete_session_audio(session_audio.audio_id)

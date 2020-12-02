@@ -1,8 +1,10 @@
+version: '3.5'
+
 volumes:
   media-data:
   db-data:
   pgadmin-data:
   mongo-express-data:
 
-networks:
-  pegasus-net:
+#networks:
+#  pegasus-net:
