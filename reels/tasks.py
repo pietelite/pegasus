@@ -51,6 +51,37 @@ def _compile_worker(session_key: str, video_id: str) -> None:
     # Concatenate videos
     final = concatenate_videoclips(clips, method="compose")
 
+    # Adding gamertag and logo to the video
+    gamertag = ''
+    gamertag_position = ''
+    logo_position = ''
+    text_clip = None
+    logo_clip = None
+    if 'gamertag' in config:
+        gamertag = config['gamertag']
+        gamertag_position = ['right','bottom']
+    if 'logo_position' in config:
+        if logo_position == ['right','bottom']:
+            logo_position = ['left','bottom']
+        else:
+            logo_position = config['logo_position']
+    else:
+        logo_position = ['left','bottom']
+
+    # if gamertag != '':
+    #     text_clip = TextClip(txt='@'+gamertag, fontsize=50, font = 'Comfortaa', color='white')
+    #     text_clip = text_clip.set_duration(final.duration)
+    #                         .margin(right=8,top = 8, left=8, bottom=8, opacity=0)
+    #                         .set_position((gamertag_position[0], gamertag_position[1]))
+    logo_clip = (ImageClip('static/reels/reels-logo-white.png')
+                .set_duration(final.duration)
+                .resize(height=300) 
+                .margin(right,=8, top = 8, left=8, bottom=8, opacity=0) 
+                .set_pos((logo_position[0],logo_position[1])))
+
+    # Combine logo, text, and videos    
+    final = CompositeVideoClip([final,logo,text])
+
     # Add audio, only if there is audio
     audio_clip = None
     if session_audio:
