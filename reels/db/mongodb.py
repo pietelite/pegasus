@@ -37,7 +37,7 @@ class MongoDBHandler(NosqlHandlerInterface):
         doc = self._db().videos.find_one({'video_id': video_id})
         if not doc:
             raise KeyError(f'This video_id {video_id} cannot be found in the videos mongo database')
-        return doc.config
+        return doc['config']
 
     @overrides
     def delete_video_config(self, video_id: str) -> None:

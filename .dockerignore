@@ -1,6 +1,7 @@
 /media/
 /staticfiles/
 /temp/
+/temp*
 /venv/
 /venv_linux/
 /.github/

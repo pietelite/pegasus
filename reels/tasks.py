@@ -23,11 +23,11 @@ def compile_video(session: SessionBase, config: dict) -> None:
         user = get_sql_handler().get_admin_user()
 
     # Save video to relational database (not available yet)
-    video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config.get('file_type', default='mp4'))
+    video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config.get('file_type', 'mp4'))
     get_sql_handler().insert_video(video=video)
     get_nosql_handler().insert_video_config(video.video_id, config)
 
-    _compile_worker.delay(session.session_key, video.video_id, config)
+    _compile_worker.delay(session.session_key, video.video_id)
 
 
 @app.task(ignore_result=True)

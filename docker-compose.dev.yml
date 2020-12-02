@@ -1,6 +1,8 @@
 volumes:
-  media:
+  media-data:
   db-data:
   pgadmin-data:
-  mongo-data:
   mongo-express-data:
+
+networks:
+  pegasus-net:

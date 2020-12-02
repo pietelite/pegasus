@@ -1,10 +1,10 @@
 version: '3.5'
 
 volumes:
-  server-data:
+  media-data:
     driver: azure_file
     driver_opts:
-      share_name: webappshare
+      share_name: mediashare
       storage_account_name: pegasuspietelitestorage
   db-data:
     driver: azure_file
@@ -16,13 +16,15 @@ volumes:
     driver_opts:
       share_name: pgadminshare
       storage_account_name: pegasuspietelitestorage
-  mongo-data:
-    driver: azure_file
-    driver_opts:
-      share_name: mongoshare
-      storage_account_name: pegasuspietelitestorage
   mongo-express-data:
     driver: azure_file
     driver_opts:
       share_name: mongoexpressshare
       storage_account_name: pegasuspietelitestorage
+
+networks:
+  pegasus-net:
+    driver: azure-vnet
+    driver_opts:
+      ipam-driver: azure-vnet
+      subnet: pegasusacisubnet

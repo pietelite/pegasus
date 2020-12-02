@@ -17,12 +17,14 @@ services:
       - broker
       - db
     volumes:
-      - media:/var/lib/media
+      - media-data:/var/lib/media
+    networks:
+      - pegasus-net
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 2G
+          cpus: '1'
+          memory: 4G
 
   worker:
     build: .
@@ -30,16 +32,18 @@ services:
     restart: "on-failure"
     env_file:
       - env.env
-    command: celery -A pegasus worker -l info
+    command: celery -A pegasus worker -l info -P solo
     depends_on:
       - broker
     volumes:
-      - media:/var/lib/media
+      - media-data:/var/lib/media
+    networks:
+      - pegasus-net
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 2G
+          cpus: '1'
+          memory: 8G
 
   flower:
     image: zoomeranalytics/flower:0.9.1-4.0.2
@@ -52,11 +56,13 @@ services:
     depends_on:
       - broker
       - worker
+    networks:
+      - pegasus-net
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 1G
+          cpus: '0.1'
+          memory: 0.1G
 
   broker:
     image: rabbitmq:3.8.9
@@ -66,11 +72,13 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - pegasus-net
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 1G
+          cpus: '0.4'
+          memory: 0.5G
 
   db:
     image: postgres
@@ -81,11 +89,13 @@ services:
       - db-data:/var/lib/postgresql
     ports:
       - "5432:5432"
+    networks:
+      - pegasus-net
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 1G
+          cpus: '0.4'
+          memory: 0.1G
 
   pgadmin:
     image: dpage/pgadmin4
@@ -98,11 +108,15 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     links:
       - "db:pgsql-server"
+    networks:
+      - pegasus-net
+    depends_on:
+      - db
     deploy:
       resources:
         limits:
-          cpus: '0.50'
-          memory: 1G
+          cpus: '0.1'
+          memory: 0.1G
 
   mongo:
     image: mongo
@@ -112,7 +126,14 @@ services:
     env_file:
       - env.env
     volumes:
-      - mongo-data:/var/lib/mongodb
+      - db-data:/var/lib/mongodb
+    networks:
+      - pegasus-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.4'
+          memory: 0.1G
 
   mongo-express:
     image: mongo-express
@@ -123,3 +144,12 @@ services:
       - env.env
     volumes:
       - mongo-express-data:/var/lib/mongoexpress
+    depends_on:
+      - mongo
+    networks:
+      - pegasus-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 0.1G

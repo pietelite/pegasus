@@ -113,9 +113,9 @@ def delete_session_clip(clip_id: str, sync: bool = True) -> None:
             os.remove(session_clip.local_file_path())
 
     if sync:
-        delete_in_blob(clip_id, CLIP_CONTAINER_NAME)
+        delete_in_blob(clip_id, CLIP_CONTAINER_NAME, quiet=True)
     else:
-        delete_in_blob.delay(clip_id, CLIP_CONTAINER_NAME)
+        delete_in_blob.delay(clip_id, CLIP_CONTAINER_NAME, quiet=True)
 
 
 # Save the audio to blob storage and relational database and delete the local copy
@@ -163,6 +163,6 @@ def delete_session_audio(audio_id: str, sync: bool = True) -> None:
             os.remove(session_audio.local_file_path())
 
     if sync:
-        delete_in_blob(audio_id, AUDIO_CONTAINER_NAME)
+        delete_in_blob(audio_id, AUDIO_CONTAINER_NAME, quiet=True)
     else:
-        delete_in_blob.delay(audio_id, AUDIO_CONTAINER_NAME)
+        delete_in_blob.delay(audio_id, AUDIO_CONTAINER_NAME, quiet=True)
