@@ -1,107 +1,4 @@
 version: '3.5'
-services:
-
-  reels:
-    build: .
-    image: pegasuscontainerregistry.azurecr.io/reels
-    restart: "on-failure"
-    command: bash -c "python manage.py migrate && \
-                      python manage.py collectstatic --noinput && \
-                      python manage.py shell --command=\"from reels.sql.sql import get_sql_handler; get_sql_handler().init_database()\" && \
-                      python manage.py runserver 0.0.0.0:80"
-    env_file:
-      - env.env
-    ports:
-      - "80:80"
-    volumes:
-      - server-data:/var/lib/server
-    depends_on:
-      - broker
-      - db
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1.5G
-
-  worker:
-    build: .
-    image: pegasuscontainerregistry.azurecr.io/worker
-    restart: "no"
-    env_file:
-      - env.env
-    command: celery -A pegasus worker -l info
-    volumes:
-      - server-data:/var/lib/server
-    depends_on:
-      - broker
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 2G
-
-  flower:
-    image: zoomeranalytics/flower:0.9.1-4.0.2
-    restart: "always"
-    env_file:
-      - env.env
-    ports:
-      - "5555:5555"
-    depends_on:
-      - broker
-      - worker
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 1G
-
-  broker:
-    image: rabbitmq:3.8.9
-    restart: "always"
-    env_file:
-      - env.env
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1G
-
-  db:
-    image: postgres
-    restart: "no"
-    env_file:
-      - env.env
-    volumes:
-      - db-data:/var/lib/postgresql
-    ports:
-      - "5432:5432"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1G
-
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: "always"
-    env_file:
-      - env.env
-    ports:
-      - "8080:8080"
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    links:
-      - "db:pgsql-server"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1G
 
 volumes:
   server-data:
@@ -118,4 +15,14 @@ volumes:
     driver: azure_file
     driver_opts:
       share_name: pgadminshare
+      storage_account_name: pegasuspietelitestorage
+  mongo-data:
+    driver: azure_file
+    driver_opts:
+      share_name: mongoshare
+      storage_account_name: pegasuspietelitestorage
+  mongo-express-data:
+    driver: azure_file
+    driver_opts:
+      share_name: mongoexpressshare
       storage_account_name: pegasuspietelitestorage

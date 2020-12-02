@@ -1,0 +1,6 @@
+volumes:
+  media:
+  db-data:
+  pgadmin-data:
+  mongo-data:
+  mongo-express-data:

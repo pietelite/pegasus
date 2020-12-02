@@ -1,0 +1,25 @@
+{% extends "reels/base.html" %}
+
+{% block title %}
+Stats
+{% endblock %}
+
+{% block content %}
+<div class="container title">
+    <h1>Reels Stats</h1>
+    <p>Here you can see all kinds of information about our users</p>
+</div>
+<div class="container">
+    <h2>Leaderboard</h2>
+    <ul class="horizontal-list">
+        <li><span style="text-decoration: underline">Username</span></li>
+        <li style="float: right; text-decoration: underline"><span># of Reels</span></li>
+    </ul>
+    {% for user in users %}
+    <ul class="horizontal-list">
+        <li><span>{{ user.user_name }}</span></li>
+        <li style="float: right"><span>{{ user.video_count }}</span></li>
+    </ul>
+    {% endfor %}
+</div>
+{% endblock %}

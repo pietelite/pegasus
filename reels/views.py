@@ -1,5 +1,6 @@
-import os
+import json
 import time
+from json import JSONDecodeError
 
 import requests
 from datetime import datetime
@@ -7,20 +8,19 @@ from django.http.response import HttpResponseBase
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect, HttpRequest, StreamingHttpResponse
 
-from .azure.blob import get_blob_stream_url
-from .config import SUPPORTED_VIDEO_TYPES, SUPPORTED_AUDIO_TYPES
-from .models import Post
-from .session import session_login, update_session_in_context, session_logout, \
+from reels.azure.blob import get_blob_stream_url
+from reels.config import SUPPORTED_VIDEO_TYPES, SUPPORTED_AUDIO_TYPES
+from reels.models import Post
+from reels.session import session_login, update_session_in_context, session_logout, \
     upload_session_audio
-from .tasks import delete_session_clip, delete_session_audio, compile_video
-from .models import User
-from .session import upload_session_clips, session_is_logged_in, session_get_user
-from .util import is_file_supported
-from .validators import valid_email, valid_username, valid_password, \
+from reels.tasks import delete_session_clip, delete_session_audio, compile_video
+from reels.models import User
+from reels.session import upload_session_clips, session_is_logged_in, session_get_user
+from reels.util import is_file_supported
+from reels.validators import valid_email, valid_username, valid_password, \
     correct_credentials, existing_user
-from .recover import send_recovery_email
-from .sql.sql import get_sql_handler
-from .video import delete_video
+from reels.email import send_recovery_email
+from reels.data import get_sql_handler, delete_video
 
 
 def _http_response_message(request: HttpRequest, context: dict, title: str, header: str, content: str) -> HttpResponse:
@@ -164,7 +164,6 @@ def forgot(request) -> HttpResponse:
 
 # Handles requests relating to profile.html
 def profile(request) -> HttpResponse:
-
     if not session_is_logged_in(request.session):
         return HttpResponseRedirect('/login')
 
@@ -285,10 +284,20 @@ def create(request) -> HttpResponse:
                 if unavailable_files:
                     post_errors.append(f'Some files are still processing!')
 
+                config = {}
+                try:
+                    config = json.loads(request.POST['config_json'])
+                except JSONDecodeError:
+                    post_errors.append('Your configuration is not in JSON format')
+
+                if 'file_type' not in config:
+                    post_errors.append('You must specify an output file type in your configuration!')
+                else:
+                    if not config['file_type'] == 'mp4':
+                        post_errors.append('We only support mp4 output at this time')
+
                 # If there haven't been any errors, go ahead and compile the video
                 if not post_errors:
-                    # TODO gonna add more config stuff later
-                    config = {'file_type': 'mp4'}
                     compile_video(request.session, config)
 
         else:
@@ -392,13 +401,27 @@ def my_videos(request) -> HttpResponse:
     update_session_in_context(context, request.session)
 
     if session_is_logged_in(request.session):
-        videos = get_sql_handler().get_videos_by_user_id(session_get_user(request.session).user_id)
-        context['user_videos'] = []
-        for stored_video in videos:
-            context['user_videos'].append(stored_video.contextualize())
-        if videos:
-            context['most_recent_video'] = time.ctime((max(videos, key=lambda v: v.created)).created)
+
+        if request.method == 'GET':
+            pass  # nothing fancy to do here
+        if request.method == 'POST':
+            post_errors = []
+            if 'delete_video' in request.POST:
+                delete_video_id = request.POST['delete_video']
+                vid = get_sql_handler().get_video(delete_video_id)
+                if vid:
+                    if vid.user_id == session_get_user(request.session).user_id:
+                        delete_video(vid.video_id, sync=True)
+                        update_session_in_context(context, request.session)
+                    else:
+                        post_errors.append('You tried to delete a video that doesn\'t belong to you!')
+                else:
+                    post_errors.append('We can\'t find that video')
+
+                context['post_errors'] = post_errors
+
         return HttpResponse(render(request, 'reels/my_videos.html', context))
+
     else:
         return HttpResponseRedirect('/login')
 
@@ -432,3 +455,16 @@ def stream(request) -> HttpResponseBase:
                 return resp
     return HttpResponseRedirect('/create')
 
+
+def stats(request) -> HttpResponseBase:
+    context = {}
+    update_session_in_context(context, request.session)
+
+    if session_is_logged_in(request.session):
+
+        context['users'] = [{'user_name': group[0], 'user_id': group[1], 'video_count': group[2]} for
+                            group in get_sql_handler().get_users_video_count()]
+        return HttpResponse(render(request, 'reels/stats.html', context))
+
+    else:
+        return HttpResponseRedirect('/login')

@@ -4,12 +4,12 @@ from django.contrib.sessions.backends.base import SessionBase
 from django.core.files import File
 
 from reels.models import User, SessionClip, SessionAudio
-from reels.video import save_session_clip, save_session_audio, delete_session_audio
+from reels.data import save_session_clip, save_session_audio, delete_session_audio
 
 # === Users ===
 
 # Login a user
-from reels.sql.sql import get_sql_handler
+from reels.data import get_sql_handler
 
 
 def session_login(session: SessionBase, user: User) -> None:
@@ -37,11 +37,12 @@ def update_session_in_context(context: dict, session: SessionBase) -> None:
     context['user_data'] = {}
     if session_is_logged_in(session):
         context['user_data'] = session['user_data']
+        context['user_videos'] = get_sql_handler().get_videos_by_user_id(session['user_data']['user_id'])
 
     context['session_clips'] = get_sql_handler().get_session_clips_by_session_key(session.session_key)
     context['session_audio'] = get_session_audio(session.session_key)
-    context['compiled_videos'] = get_sql_handler().get_videos_by_session_key(session.session_key)
-    context['unavailable_video'] = bool([vid for vid in context['compiled_videos'] if not vid.available])
+    context['session_videos'] = get_sql_handler().get_videos_by_session_key(session.session_key)
+    context['unavailable_video'] = bool([vid for vid in context['session_videos'] if not vid.available])
 
 
 # === Uploading ===

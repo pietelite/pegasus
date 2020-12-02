@@ -4,8 +4,8 @@
 {% block title %}Create{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'reels/create.css' %}">
 <link rel="stylesheet" href="{% static 'reels/upload.css' %}">
+<script type="module" src="{% static 'reels/upload.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -26,33 +26,33 @@
 </div>
 {% endif %}
 
-{% if compiled_videos %}
+{% if session_videos %}
 <div class="container title">
     <h1>Your Reels</h1>
-    {% for compiled_video in compiled_videos %}
+    {% for session_video in session_videos %}
     <div class="video-item">
         <ul class="horizontal-list">
-            <li><span>{{ compiled_video.created_formatted }}</span></li>
-            {% if not compiled_video.available %}
+            <li><span>{{ session_video.created_formatted }}</span></li>
+            {% if not session_video.available %}
             <li style="float: right"><div class="processing-element"></div></li>
             {% else %}
             <li class="inline-button download-button">
                 <form action="/stream" method="POST">
                     {% csrf_token %}
-                    <button name="download_video" value="{{ compiled_video.video_id }}">
+                    <button name="download_video" value="{{ session_video.video_id }}">
                         <i class="material-icons">cloud_download</i>
                     </button>
                 </form>
             </li>
+            {% endif %}
             <li class="inline-button delete-button">
                 <form action="/create" method="POST">
                     {% csrf_token %}
-                    <button name="delete_video" value="{{ compiled_video.video_id }}">
+                    <button name="delete_video" value="{{ session_video.video_id }}">
                         <i class="material-icons">delete</i>
                     </button>
                 </form>
             </li>
-            {% endif %}
         </ul>
     </div>
     {% endfor %}
@@ -136,7 +136,7 @@
     <div class="note info">
         <ul class="horizontal-list">
             <li><i class="material-icons">info</i></li>
-            <li><span>If you don't upload anything, we'll just use the audio in your videos!</span></li>
+            <li><span>If you don't upload anything, we'll just use the audio in your videos</span></li>
         </ul>
     </div>
     {% endif %}
@@ -155,12 +155,17 @@
     <div class="note info">
         <ul class="horizontal-list">
             <li><i class="material-icons">info</i></li>
-            <li><span>You can't configure anything yet &#128556, but stay tuned for updates!</span></li>
+            <li><span>You may ignore this step</span></li>
         </ul>
     </div>
     <form id="config-form" action="/create" method="POST">
         {% csrf_token %}
         <!-- All elements here will be automatically generated in config-panel with proper UI -->
+        <textarea name="config_json" style="
+height:300px;
+width:100%;
+overflow:scroll;
+        ">{ "file_type": "mp4" }</textarea>
     </form>
     <div id="config-panel">
         <!-- This is where config elements will be generated dynamically with JS -->
@@ -172,10 +177,6 @@
             onclick="document.getElementById('config-form').submit();">Create!
     </button>
 </div>
-{% endif %} <!-- if compiled_video -->
+{% endif %} <!-- if session_video -->
 
-{% endblock %}
-
-{% block tail %}
-<script type="module" src="{% static 'reels/upload.js' %}"></script>
 {% endblock %}

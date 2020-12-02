@@ -16,7 +16,8 @@ urlpatterns = [
     re_path(r'myvideos/?', views.my_videos, name='my videos'),
     re_path(r'video', views.video, name='video'),
     re_path(r'profile/?', views.profile, name='profile'),
-    re_path(r'stream/?', views.stream, name='stream')
+    re_path(r'stream/?', views.stream, name='stream'),
+    re_path(r'stats/?', views.stats, name='stats'),
 ]
 urlpatterns += static(STATIC_URL, document_root=STATIC_ROOT)
 urlpatterns += static(MEDIA_URL, document_root=MEDIA_ROOT)

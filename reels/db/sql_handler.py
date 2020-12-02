@@ -167,7 +167,7 @@ class SqlHandlerInterface:
 
     # AGGREGATES AND SEQUENCES
 
-    def get_users_post_count(self) -> list:
+    def get_users_video_count(self) -> list:
         raise NotImplementedError
 
     def tear_down_database(self) -> None:

@@ -1,6 +1,6 @@
 from re import fullmatch
-from .sql.sql import get_sql_handler
-from .config import USERNAME_LENGTH_MIN, USERNAME_LENGTH_MAX, USERNAME_REGEX, \
+from reels.data import get_sql_handler
+from reels.config import USERNAME_LENGTH_MIN, USERNAME_LENGTH_MAX, USERNAME_REGEX, \
     PASSWORD_LENGTH_MIN, PASSWORD_LENGTH_MAX, PASSWORD_REGEX, \
     EMAIL_REGEX
 

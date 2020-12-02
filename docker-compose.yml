@@ -7,7 +7,7 @@ services:
     restart: "no"
     command: bash -c "python manage.py migrate
                       && python manage.py collectstatic --noinput
-                      && python manage.py shell --command=\"from reels.sql.sql import get_sql_handler; get_sql_handler().init_database()\"
+                      && python manage.py shell --command=\"from reels.data import get_sql_handler; get_sql_handler().init_database()\"
                       && python manage.py runserver 0.0.0.0:80"
     env_file:
       - env.env
@@ -104,7 +104,22 @@ services:
           cpus: '0.50'
           memory: 1G
 
-volumes:
-  media:
-  db-data:
-  pgadmin-data:
+  mongo:
+    image: mongo
+    restart: "no"
+    ports:
+      - "27017:27017"
+    env_file:
+      - env.env
+    volumes:
+      - mongo-data:/var/lib/mongodb
+
+  mongo-express:
+    image: mongo-express
+    restart: "always"
+    ports:
+      - "8081:8081"
+    env_file:
+      - env.env
+    volumes:
+      - mongo-express-data:/var/lib/mongoexpress

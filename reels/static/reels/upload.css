@@ -24,10 +24,39 @@
     display: none;
 }
 
+.space {
+    width: .25em;
+}
+
+.video-item {
+    background-color: var(--secondary-theme);
+    color: #E0E0E0;
+    font-size: 24px;
+    border-radius: 5px;
+    margin: 30px;
+    padding: 10px;
+}
+
+.video-item .processing-element {
+    color: var(--background-1);
+}
+
+.uploaded {
+    background-color: var(--background-2);
+    color: white;
+    border-radius: 5px;
+    margin: 20px;
+    padding: 10px;
+}
+
 .uploaded li {
     height: 2em;
 }
 
-.space {
-    width: .25em;
+.delete-button i {
+    background: var(--secondary-theme);
+}
+
+.download-button i {
+    background: var(--background-3);
 }

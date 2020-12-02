@@ -2,6 +2,7 @@ import os
 import uuid
 from datetime import datetime, timedelta
 
+from azure.core.exceptions import ResourceNotFoundError
 from azure.storage.blob import BlobServiceClient, BlobBlock, generate_blob_sas, generate_container_sas, \
     AccountSasPermissions, BlobSasPermissions
 from pegasus.celery import app
@@ -16,7 +17,7 @@ AUDIO_CONTAINER_NAME = "pegasus-session-audio"
 
 # Save a local video file to azure blob storage with a given video_id
 @app.task(ignore_result=True)
-def save_to_blob(local_path: str, remote_name: str, container_name) -> None:
+def save_to_blob(local_path: str, remote_name: str, container_name: str) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
@@ -49,7 +50,7 @@ def save_to_blob(local_path: str, remote_name: str, container_name) -> None:
 
 # Download a video file from azure blob storage with a given video_id
 @app.task(ignore_result=True)
-def download_from_blob(local_path: str, remote_name: str, container_name) -> None:
+def download_from_blob(local_path: str, remote_name: str, container_name: str) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
@@ -77,7 +78,7 @@ def get_blob_stream_url(remote_name: str, container_name: str) -> str:
 
 # Delete a video file in azure blob storage with a given video_id
 @app.task(ignore_result=True)
-def delete_in_blob(remote_name: str, container_name) -> None:
+def delete_in_blob(remote_name: str, container_name: str, quiet: bool = False) -> None:
     # Instantiate a new BlobServiceClient using a connection string
     blob_service_client = BlobServiceClient.from_connection_string(connection_string)
 
@@ -87,4 +88,10 @@ def delete_in_blob(remote_name: str, container_name) -> None:
     # Instantiate a new BlobClient
     blob_client = container_client.get_blob_client(remote_name)
 
-    blob_client.delete_blob(timeout=30)
+    try:
+        blob_client.delete_blob(timeout=30)
+    except ResourceNotFoundError as err:
+        if quiet:
+            pass  # ignore
+        else:
+            raise err

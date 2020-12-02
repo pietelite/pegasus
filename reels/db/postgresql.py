@@ -7,11 +7,10 @@ from overrides import overrides
 from ..models import User, Video, Like, PostTag, Post, SessionClip, SessionAudio
 from django.db import connection
 
-from .sql import SqlHandlerInterface
+from .sql_handler import SqlHandlerInterface
 
 
 class PostgreSqlHandler(SqlHandlerInterface, ABC):
-    # TODO make all inserts specify which columns its inserting all values
     # Initialize all objects in database
     @overrides
     def init_database(self) -> None:
@@ -48,7 +47,6 @@ CREATE TABLE IF NOT EXISTS videos (
     user_id CHAR(32) NOT NULL,
     session_key CHAR(32),
     file_type VARCHAR(255) NOT NULL,
-    config JSON NOT NULL,
     created BIGINT NOT NULL,
     available BIT DEFAULT '0',
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
@@ -60,9 +58,8 @@ CREATE TABLE IF NOT EXISTS sessionclips (
     clip_id CHAR(32) NOT NULL PRIMARY KEY,
     session_key CHAR(32) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    config JSON NOT NULL,
     available BIT DEFAULT '0',
-    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE CASCADE
+    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE SET NULL
 );
 
 /* sessionaudio */
@@ -70,9 +67,8 @@ CREATE TABLE IF NOT EXISTS sessionaudio (
     audio_id CHAR(32) NOT NULL PRIMARY KEY,
     session_key CHAR(32) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
-    config JSON NOT NULL,
     available BIT DEFAULT '0',
-    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE CASCADE
+    FOREIGN KEY (session_key) REFERENCES django_session(session_key) ON DELETE SET NULL
 );
 
 /* posts */
@@ -247,13 +243,12 @@ CREATE TRIGGER update_post_trigger_delete
     def insert_video(self, video: Video) -> None:
         with connection.cursor() as cursor:
             query = f"INSERT INTO videos " \
-                    f"(video_id, user_id, session_key, file_type, config, created) " \
+                    f"(video_id, user_id, session_key, file_type, created) " \
                     f"VALUES (" \
                     f"'{video.video_id}', " \
                     f"'{video.user_id}', " \
                     f"'{video.session_key}', " \
                     f"'{video.file_type}', " \
-                    f"'{video.config}', " \
                     f"'{video.created}')"
             cursor.execute(query)
 
@@ -264,7 +259,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"user_id = '{video.user_id}', " \
                     f"session_key = '{video.session_key}', " \
                     f"file_type = '{video.file_type}', " \
-                    f"config = '{video.config}', " \
                     f"created = '{video.created}', " \
                     f"available = '{int(video.available)}' " \
                     f"WHERE video_id = '{video.video_id}'"
@@ -286,7 +280,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"file_type, " \
                     f"session_key, " \
                     f"video_id, " \
-                    f"config, " \
                     f"created, " \
                     f"available" \
                     f" " \
@@ -294,14 +287,12 @@ CREATE TRIGGER update_post_trigger_delete
             cursor.execute(query)
             row = cursor.fetchone()
         if row:
-            # TODO need to do something special with this JSON config
             return Video(user_id=row[0],
                          file_type=row[1],
                          session_key=row[2],
                          video_id=row[3],
-                         config=row[4],
-                         created=row[5],
-                         available=bool(int(row[6])))
+                         created=row[4],
+                         available=bool(int(row[5])))
         return None
 
     @overrides
@@ -312,21 +303,18 @@ CREATE TRIGGER update_post_trigger_delete
                     f"file_type, " \
                     f"session_key, " \
                     f"video_id, " \
-                    f"config, " \
                     f"created, " \
                     f"available" \
                     f" " \
                     f"FROM videos WHERE user_id = '{user_id}'"
             cursor.execute(query)
             rows = cursor.fetchall()
-        # TODO need to do something special with this JSON config
         return [Video(user_id=row[0],
                       file_type=row[1],
                       session_key=row[2],
                       video_id=row[3],
-                      config=row[4],
-                      created=row[5],
-                      available=bool(int(row[6]))) for row in rows]
+                      created=row[4],
+                      available=bool(int(row[5]))) for row in rows]
 
     @overrides
     def get_videos_by_session_key(self, session_key: str) -> List[Video]:
@@ -336,21 +324,18 @@ CREATE TRIGGER update_post_trigger_delete
                     f"file_type, " \
                     f"session_key, " \
                     f"video_id, " \
-                    f"config, " \
                     f"created, " \
                     f"available" \
                     f" " \
                     f"FROM videos WHERE session_key = '{session_key}'"
             cursor.execute(query)
             rows = cursor.fetchall()
-        # TODO need to do something special with this JSON config
         return [Video(user_id=row[0],
                       file_type=row[1],
                       session_key=row[2],
                       video_id=row[3],
-                      config=row[4],
-                      created=row[5],
-                      available=bool(int(row[6]))) for row in rows]
+                      created=row[4],
+                      available=bool(int(row[5]))) for row in rows]
 
     # === SESSION ===
 
@@ -359,12 +344,11 @@ CREATE TRIGGER update_post_trigger_delete
     def insert_session_clip(self, clip: SessionClip) -> None:
         with connection.cursor() as cursor:
             query = f"INSERT INTO sessionclips " \
-                    f"(clip_id, session_key, file_name, config) " \
+                    f"(clip_id, session_key, file_name) " \
                     f"VALUES (" \
                     f"'{clip.clip_id}', " \
                     f"'{clip.session_key}', " \
-                    f"'{clip.file_name}', " \
-                    f"'{clip.config}')"
+                    f"'{clip.file_name}')"
             cursor.execute(query)
 
     @overrides
@@ -373,7 +357,6 @@ CREATE TRIGGER update_post_trigger_delete
             query = f"UPDATE sessionclips SET " \
                     f"session_key = '{clip.session_key}', " \
                     f"file_name = '{clip.file_name}', " \
-                    f"config = '{clip.config}', " \
                     f"available = '{int(clip.available)}' " \
                     f"WHERE clip_id = '{clip.clip_id}'"
             cursor.execute(query)
@@ -400,7 +383,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"clip_id, " \
                     f"session_key," \
                     f"file_name, " \
-                    f"config," \
                     f"available" \
                     f" " \
                     f"FROM sessionclips WHERE clip_id = '{clip_id}'"
@@ -410,8 +392,7 @@ CREATE TRIGGER update_post_trigger_delete
             return SessionClip(clip_id=row[0],
                                session_key=row[1],
                                file_name=row[2],
-                               config=row[3],
-                               available=bool(int(row[4])))
+                               available=bool(int(row[3])))
         return None
 
     # Gets all session clip information from a single session id
@@ -422,7 +403,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"clip_id, " \
                     f"session_key," \
                     f"file_name, " \
-                    f"config," \
                     f"available" \
                     f" " \
                     f"FROM sessionclips WHERE session_key = '{session_key}'"
@@ -431,20 +411,18 @@ CREATE TRIGGER update_post_trigger_delete
         return [SessionClip(clip_id=row[0],
                             session_key=row[1],
                             file_name=row[2],
-                            config=row[3],
-                            available=bool(int(row[4]))) for row in rows]
+                            available=bool(int(row[3]))) for row in rows]
 
     # Inserts a clip uploaded from a session. This does not do anything with the actual clip.
     @overrides
     def insert_session_audio(self, audio: SessionAudio) -> None:
         with connection.cursor() as cursor:
             query = f"INSERT INTO sessionaudio " \
-                    f"(audio_id, session_key, file_name, config) " \
+                    f"(audio_id, session_key, file_name) " \
                     f"VALUES (" \
                     f"'{audio.audio_id}', " \
                     f"'{audio.session_key}', " \
-                    f"'{audio.file_name}', " \
-                    f"'{audio.config}')"
+                    f"'{audio.file_name}')"
             cursor.execute(query)
 
     @overrides
@@ -453,7 +431,6 @@ CREATE TRIGGER update_post_trigger_delete
             query = f"UPDATE sessionaudio SET " \
                     f"session_key = '{audio.session_key}', " \
                     f"file_name = '{audio.file_name}', " \
-                    f"config = '{audio.config}', " \
                     f"available = '{int(audio.available)}' " \
                     f"WHERE audio_id = '{audio.audio_id}'"
             cursor.execute(query)
@@ -480,7 +457,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"audio_id," \
                     f"session_key," \
                     f"file_name," \
-                    f"config, " \
                     f"available" \
                     f" " \
                     f"FROM sessionaudio WHERE audio_id = '{audio_id}'"
@@ -490,8 +466,7 @@ CREATE TRIGGER update_post_trigger_delete
             return SessionAudio(audio_id=row[0],
                                 session_key=row[1],
                                 file_name=row[2],
-                                config=row[3],
-                                available=bool(int(row[4])))
+                                available=bool(int(row[3])))
         return None
 
     # Gets all session clip information from a single session id
@@ -502,7 +477,6 @@ CREATE TRIGGER update_post_trigger_delete
                     f"audio_id," \
                     f"session_key," \
                     f"file_name," \
-                    f"config, " \
                     f"available" \
                     f" " \
                     f"FROM sessionaudio WHERE session_key = '{session_key}'"
@@ -511,8 +485,7 @@ CREATE TRIGGER update_post_trigger_delete
         return [SessionAudio(audio_id=row[0],
                              session_key=row[1],
                              file_name=row[2],
-                             config=row[3],
-                             available=bool(int(row[4]))) for row in rows]
+                             available=bool(int(row[3]))) for row in rows]
 
     # === POSTS, TAGS, AND LIKES ===
 
@@ -661,13 +634,13 @@ CREATE TRIGGER update_post_trigger_delete
     # AGGREGATES AND SEQUENCES
 
     @overrides
-    def get_users_post_count(self) -> list:
+    def get_users_video_count(self) -> list:
         with connection.cursor() as cursor:
             query = """
-SELECT videos.user_id, COUNT(post_id) as post_count
-FROM videos JOIN posts ON posts.video_id = videos.video_id
-GROUP BY videos.user_id
-ORDER BY post_count DESC
+SELECT users.user_name, users.user_id, COUNT(videos.video_id) as video_count
+FROM users LEFT JOIN videos ON users.user_id = videos.user_id
+GROUP BY users.user_id
+ORDER BY video_count DESC
             """
             cursor.execute(query)
             rows = cursor.fetchall()

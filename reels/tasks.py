@@ -1,20 +1,16 @@
-import os
-from os import remove
-from os.path import join
 
 from celery.utils.log import get_task_logger
 from django.contrib.sessions.backends.base import SessionBase
 
 from pegasus.celery import app
-from pegasus.settings import MEDIA_ROOT
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 from .session import session_is_logged_in, session_get_user
-from .video import download_session_clip, download_session_audio, delete_session_clip, save_video, delete_session_audio
-from .models import Video, User
-from .sql.sql import get_sql_handler
+from .data import download_session_clip, download_session_audio, delete_session_clip, save_video, \
+    delete_session_audio, get_sql_handler, get_nosql_handler
+from .models import Video
 
 logger = get_task_logger(__name__)
 
@@ -28,6 +24,7 @@ def compile_video(session: SessionBase, config: dict) -> None:
 
     video = Video(user_id=user.user_id, session_key=session.session_key, file_type=config['file_type'])
     get_sql_handler().insert_video(video=video)
+    get_nosql_handler().insert_video_config(video.video_id, config)
 
     _compile_worker.delay(session.session_key, video.video_id, config)
 

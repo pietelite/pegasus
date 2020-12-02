@@ -38,8 +38,6 @@ class Video:
                  available: bool = False):
         if video_id is None:
             video_id = uuid_to_str(uuid4())
-        if config is None:
-            config = {}
         if created is None:
             created = int(time.time())
 
@@ -108,8 +106,6 @@ class SessionClip:
 
     def __init__(self, file_name: str, session_key: str,
                  clip_id: str = None, config: dict = None, available: bool = False):
-        if config is None:
-            config = {}
         if clip_id is None:
             clip_id = uuid_to_str(uuid4())
 
@@ -137,8 +133,6 @@ class SessionAudio:
 
     def __init__(self, file_name: str, session_key: str,
                  audio_id: str = None, config: dict = None, available: bool = False):
-        if config is None:
-            config = {}
         if audio_id is None:
             audio_id = uuid_to_str(uuid4())
 

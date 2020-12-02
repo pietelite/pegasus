@@ -1,38 +1,54 @@
 {% extends "reels/base.html" %}
+{% load static %}
 
 {% block title %}My Videos{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'reels/upload.css' %}">
+<script type="module" src="{% static 'reels/upload.js' %}"></script>
+{% endblock %}
 
 {% block content %}
 {% if user_videos %}
 <div class="container title">
     <div class="row justify-content-center">
-        <h1>Most Recent</h1>
+        <h1>My Videos</h1>
     </div>
-    <div class="row justify-content-center">
-        <span>{{ most_recent_video }}</span>
+    {% for user_video in user_videos %}
+    <div class="video-item">
+        <ul class="horizontal-list">
+            <li><span>{{ user_video.created_formatted }}</span></li>
+            {% if not user_video.available %}
+            <li style="float: right"><div class="processing-element"></div></li>
+            {% else %}
+            <li class="inline-button download-button">
+                <form action="/stream" method="POST">
+                    {% csrf_token %}
+                    <button name="download_video" value="{{ user_video.video_id }}">
+                        <i class="material-icons">cloud_download</i>
+                    </button>
+                </form>
+            </li>
+            {% endif %}
+            <li class="inline-button delete-button">
+                <form action="/myvideos" method="POST">
+                    {% csrf_token %}
+                    <button name="delete_video" value="{{ user_video.video_id }}">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </form>
+            </li>
+        </ul>
     </div>
-</div>
-<div class="container">
-    <div class="row justify-content-center">
-        <h1>All Videos</h1>
-    </div>
-    <ul style="list-style-type:none">
-        {% for video in user_videos %}
-        <li>
-            <div class="row">
-                <a href="/video?id={{ video.video_id }}"><h4>{{ video.formatted_time }}</h4></a>
-            </div>
-        </li>
-        {% endfor %}
-    </ul>
+    {% endfor %}
 </div>
 {% else %}
 <div class="container title">
     <div class="row justify-content-center">
-        <h1>So empty!</h1>
+        <h1>Much empty!</h1>
     </div>
     <div class="row justify-content-center">
-        <span>Looks like you don't have any Reels yet. Head over to the Create page to make one</span>
+        <span>Looks like you don't have any Reels yet. Head over to the <a href="/create">Create</a> page to make one</span>
     </div>
 </div>
 {% endif %}

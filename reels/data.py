@@ -3,8 +3,17 @@ import os
 from pegasus.celery import app
 from reels.azure.blob import VIDEO_CONTAINER_NAME, save_to_blob, download_from_blob, delete_in_blob, \
     CLIP_CONTAINER_NAME, AUDIO_CONTAINER_NAME
+from reels.db.mongodb import MongoDBHandler
+from reels.db.postgresql import PostgreSqlHandler
 from reels.models import Video, SessionClip, SessionAudio
-from reels.sql.sql import get_sql_handler
+
+
+def get_sql_handler():
+    return PostgreSqlHandler()
+
+
+def get_nosql_handler():
+    return MongoDBHandler()
 
 
 # Save the video to blob storage and relational database and delete the local copy
@@ -51,10 +60,12 @@ def delete_video(video_id: str, sync: bool = True) -> None:
         if os.path.exists(video.local_file_path()):
             os.remove(video.local_file_path())
 
+    get_nosql_handler().delete_video_config(video_id)
+
     if sync:
-        delete_in_blob(video_id, VIDEO_CONTAINER_NAME)
+        delete_in_blob(video_id, VIDEO_CONTAINER_NAME, quiet=True)
     else:
-        delete_in_blob.delay(video_id, VIDEO_CONTAINER_NAME)
+        delete_in_blob.delay(video_id, VIDEO_CONTAINER_NAME, quiet=True)
 
 
 # Save the clip to blob storage and relational database and delete the local copy

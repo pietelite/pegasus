@@ -32,13 +32,16 @@
 
 <div id="navbar">
     <ul class="horizontal-list">
-        <li><a href="/" id="logo"><img src="{% static 'reels/reels-logo-white.png' %}"
+        <li><a href="/" id="logo">
+            <img src="{% static 'reels/reels-logo-white.png' %}"
                                              alt="logo"
                                              height="36px"
-                                             style="border: 1.5px solid white; border-radius: 4px"></a></li>
+                                             style="border: 1.5px solid white; border-radius: 4px"></a>
+            <div style="position: absolute; transform: translate(16px, -25px); font-size: 10px; color: var(--secondary-theme)">Alpha</div>
+        </li>
         <li><a href="/create"><span>Create</span></a></li>
         <!-- <li><a href="/social"><span>Social</span></a></li> -->
-        <li><a href="/improve"><span>Help Us Improve</span></a></li>
+        <!-- <li><a href="/improve"><span>Help Us Improve</span></a></li> -->
         <script>
             showSidebar = () => {
                 navbar = document.getElementById("navbar");
@@ -71,6 +74,7 @@
     <ul>
         <li><a href="/myvideos"><span>My Videos</span></a></li>
         <li><a href="/profile"><span>My Profile</span></a></li>
+        <li><a href="/stats"><span>Global Stats</span></a></li>
         <li><a href="/logout"><span>Logout</span></a></li>
     </ul>
 </div>

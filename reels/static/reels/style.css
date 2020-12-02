@@ -40,7 +40,7 @@ span a, p a {
 
 span a:hover, p a:hover {
     background: var(--background-2);
-    color: #E0E0E0;
+    color: var(--secondary-theme);
     text-decoration: none;
 }
 
@@ -225,6 +225,8 @@ body {
 h1 {
     font-size: 32px;
 }
+
+/* Notes */
 
 .note {
     border-radius: 5px;
