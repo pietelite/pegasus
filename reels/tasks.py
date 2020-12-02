@@ -6,6 +6,9 @@ from pegasus.celery import app
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.compositing.concatenate import concatenate_videoclips
 from moviepy.video.io.VideoFileClip import VideoFileClip
+import numpy as np
+from scipy.io.wavfile import read, write
+import random
 
 from .session import session_is_logged_in, session_get_user
 from .data import download_session_clip, download_session_audio, delete_session_clip, save_video, \
@@ -14,6 +17,10 @@ from .models import Video
 
 logger = get_task_logger(__name__)
 
+def invert_colors(image):
+    presets = [[0,0,0], [0,2,1]]
+    usethis = random.randrange(0,len(presets),1)
+    return image[:,:,presets[usethis]]
 
 def compile_video(session: SessionBase, config: dict) -> None:
     # Get user info
@@ -79,6 +86,7 @@ def _compile_worker(session_key: str, video_id: str) -> None:
                 .margin(right,=8, top = 8, left=8, bottom=8, opacity=0) 
                 .set_pos((logo_position[0],logo_position[1])))
 
+    
     # Combine logo, text, and videos    
     final = CompositeVideoClip([final,logo,text])
 
@@ -89,6 +97,37 @@ def _compile_worker(session_key: str, video_id: str) -> None:
         # Attach audio to video, but make it only as long as the videos are
         # TODO: Manage case where videos are longer than audio clip
         final = final.set_audio(audio_clip.set_duration(final.duration))
+
+    # If extra editing is enabled, do so
+    if config['extras'] == True:
+        Fs, data = read(session_audio.local_file_path())
+        data = data[:,0]
+        data = data[:len(data)-len(data)%48000]
+        data2 = np.mean(data.reshape(-1,int(48000/4)) ,axis=1)
+        x = np.diff(data2, n=1)
+        secs = np.where(x>200)[0]
+        t = list(secs[np.where(np.diff(secs) > 12)[0]+1])
+        if np.diff(secs)[0] >12:
+            t.insert(0,secs[0])
+        for i in range(0,len(t)):
+            t[i] /=4
+        for i in t:
+            tfreeze = i
+            if tfreeze+1.75 >= final.duration:
+                break
+            clip_before = final.subclip(t_end = tfreeze)
+            clip_after = final.subclip(t_start = tfreeze +1)
+            clip = final.subclip(t_start = tfreeze,t_end = tfreeze+1)
+            if int(i)%2 == 0:
+                clip = clip.fl_image(invert_colors).crossfadein(0.5).crossfadeout(0.5)
+            else:
+                clip = clip.fx( vfx.painting, saturation = 1.6,black = 0.006).crossfadein(0.5).crossfadeout(0.5)
+            final =  concatenate_videoclips([ clip_before,
+                                            clip,
+                                            clip_after])
+    else:
+        pass
+
 
     # === Final Saving ===
 
